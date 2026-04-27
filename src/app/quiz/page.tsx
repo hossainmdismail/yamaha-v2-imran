@@ -44,13 +44,15 @@ export default function Quiz() {
   const handleNext = async () => {
     if (!selectedOption) return;
 
-    const newAnswers = [...answers, selectedOption];
+    const newAnswers = [...answers];
+    newAnswers[currentQ] = selectedOption;
     
     if (currentQ < QUESTIONS.length - 1) {
       setAnswers(newAnswers);
-      setSelectedOption(null);
+      setSelectedOption(answers[currentQ + 1] || null); // Restore next selection if going forward again
       setCurrentQ(currentQ + 1);
     } else {
+      setAnswers(newAnswers);
       setLoading(true);
       try {
         const res = await fetch('/api/quiz/submit', {
@@ -78,6 +80,15 @@ export default function Quiz() {
     }
   };
 
+  const handleBack = () => {
+    if (currentQ > 0) {
+      setCurrentQ(currentQ - 1);
+      setSelectedOption(answers[currentQ - 1] || null);
+    } else {
+      router.push('/');
+    }
+  };
+
   const question = QUESTIONS[currentQ];
   const progress = ((currentQ + 1) / QUESTIONS.length) * 100;
 
@@ -92,8 +103,42 @@ export default function Quiz() {
     );
   }
 
+  const getPremiumIcon = (id: string, isSelected: boolean) => {
+    const color = isSelected ? "white" : "var(--text-secondary)";
+    
+    switch (id) {
+      case 'Weekend Explorer':
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="21"></line></svg>;
+      case 'Daily Commuter':
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="15" y2="22"></line><line x1="12" y1="6" x2="12" y2="6.01"></line><line x1="12" y1="10" x2="12" y2="10.01"></line><line x1="12" y1="14" x2="12" y2="14.01"></line><line x1="12" y1="18" x2="12" y2="18.01"></line></svg>;
+      case 'Speed Enthusiast':
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>;
+      case 'Urban Nightscapes':
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
+      case 'Coastal Highways':
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
+      case 'Mountain Trails':
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3l4 8 5-5 5 15H2L8 3z"></path></svg>;
+      case 'Iconic Blue':
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>;
+      case 'Dark Side':
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
+      case 'Dream Bike':
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>;
+      default:
+        return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>;
+    }
+  };
+
   return (
     <main className={styles.container}>
+      <div className={styles.topNav}>
+        <button className={styles.backButton} onClick={handleBack}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back
+        </button>
+      </div>
+
       <div className={styles.header}>
         <h1 className={styles.questionTitle}>{question.title}</h1>
         <p className={styles.subtitle}>Select an option to continue</p>
@@ -118,11 +163,7 @@ export default function Quiz() {
                 onClick={() => setSelectedOption(opt.id)}
               >
                 <div className={styles.iconWrapper}>
-                  {/* Generic icon shape */}
-                  <svg className={styles.optionIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="8" fill={isSelected ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" opacity={isSelected ? "1" : "0.5"} />
-                    {isSelected && <circle cx="12" cy="12" r="4" fill="var(--bg-dark)" />}
-                  </svg>
+                  {getPremiumIcon(opt.id, isSelected)}
                 </div>
                 <div className={styles.optionTextContent}>
                   <div className={styles.optionTitle}>{opt.title}</div>
