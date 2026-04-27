@@ -66,14 +66,29 @@ export async function POST(req: Request) {
     // Generate Text Persona Copy
     const personaCopy = await generatePersonaCopy(persona, bikeModel);
 
-    // Construct a high-priority multimodal prompt
+    const poseDirection = "Full-body vertical portrait of the rider standing beside or lightly leaning on the motorcycle, one foot grounded, stylish confident body language, premium biker fashion pose, face clearly visible, head uncovered, no helmet on the head.";
+    const cameraFrame = "Vertical 3:4 campaign framing, full head visible, full feet visible, entire rider visible from head to toe, bike fully visible, no cropped head, no cropped shoes, premium shallow depth of field.";
+    const wardrobeDirection = "The rider is wearing premium biker streetwear: fitted jeans, a real leather jacket, clean boots or sneakers, and a cool modern Yamaha lifestyle look.";
+    const realismDirection = "Ultra photorealistic commercial motorcycle photography. Real Yamaha design language, real motorcycle proportions, perfectly scaled human anatomy, real materials, realistic lighting, shadows, and reflections. No illustration, no cartoon, no caricature, no exaggerated features.";
+
     const finalPromptTemplate = `
-      Create a single person premium cinematic lifestyle portrait of the uploaded person.
-      THE PERSON IN THE PHOTO MUST BE THE MAIN SUBJECT. PRESERVE FACIAL FEATURES EXACTLY.
-      The person is a "${behavior}" with a passion for "${aspiration}".
-      Scene: The person is riding or posing with a Yamaha ${bikeModel} in ${environment}.
-      Style: High-end automotive photography, 8k resolution, cinematic lighting, sharp focus on face.
-      Priority: 1. Face Match, 2. ${behavior} vibe, 3. ${bikeModel} integration, 4. ${environment} background.
+      A premium, ultra-realistic lifestyle portrait of the person from the reference image seamlessly integrated into a beautiful cinematic scene.
+      
+      SUBJECT: The rider has a realistic, perfectly proportioned adult human body. The face from the reference image is mapped naturally onto this body with matching skin tones and lighting.
+      
+      COMPOSITION: ${cameraFrame}
+      
+      POSE: ${poseDirection}
+      
+      WARDROBE: ${wardrobeDirection}
+      
+      ENVIRONMENT: ${environment}. 
+      
+      MOOD: ${behavior}, with a passion for ${aspiration}.
+      
+      VEHICLE: A highly detailed, realistic Yamaha ${bikeModel} motorcycle.
+      
+      REALISM: ${realismDirection}
     `;
 
     // Generate Image

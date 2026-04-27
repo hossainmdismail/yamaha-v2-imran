@@ -2,6 +2,8 @@ import { query } from '@/lib/server/mysql';
 import { notFound } from 'next/navigation';
 import styles from '../result.module.css';
 
+import ResultActions from './ResultActions';
+
 export default async function Result({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const id = parseInt(resolvedParams.id, 10);
@@ -30,7 +32,7 @@ export default async function Result({ params }: { params: Promise<{ id: string 
         <div className={styles.card} id="persona-card">
           <div className={styles.imageWrapper}>
             <img src={data.generated_image_url} alt="AI Persona" className={styles.genImage} crossOrigin="anonymous" />
-            <img src="/yamaha-logo.png" alt="Yamaha" className={styles.branding} onError={(e) => e.currentTarget.style.display = 'none'} />
+
           </div>
           <div className={styles.content}>
             <div className={styles.badge}>{data.model_name} Rider</div>
@@ -39,14 +41,7 @@ export default async function Result({ params }: { params: Promise<{ id: string 
           </div>
         </div>
 
-        <div className={styles.actions}>
-          <a href={data.generated_image_url} download={`Yamaha_Persona_${data.name}.jpg`} className={styles.secondaryBtn} style={{ textAlign: 'center' }}>
-            Download Card
-          </a>
-          <button className="primary-button" style={{ flex: 1 }} onClick={() => {}}>
-            Share Result
-          </button>
-        </div>
+        <ResultActions imageUrl={data.generated_image_url} userName={data.name} />
       </div>
     </main>
   );

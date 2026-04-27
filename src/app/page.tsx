@@ -77,7 +77,7 @@ export default function Home() {
   return (
     <main className="page-container">
       <div className={`${styles.card} fade-in`}>
-        <img src="/yamaha-logo.png" alt="Yamaha" className={styles.logo} onError={(e) => e.currentTarget.style.display = 'none'} />
+
         
         {step === 'landing' && (
           <div className={styles.landingContent}>
