@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Yamaha Ride Personality Experience
 
-## Getting Started
+A mobile-first AI microsite where users can submit leads, verify their phone number, take a personality quiz, upload a photo, and generate a cinematic AI persona card using Gemini.
 
-First, run the development server:
+## Tech Stack
+- **Framework**: Next.js (App Router, TypeScript)
+- **Database**: MySQL (using `mysql2`)
+- **AI**: Google Gen AI SDK (`@google/genai`) with Gemini models
+- **OTP Provider**: BulkSMSBD
+- **Authentication**: JWT (using `jose`)
+- **Styling**: Vanilla CSS (CSS Modules)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
+1. **Lead Capture & OTP Verification** (Rate Limited & Secure)
+2. **Dynamic Quiz** (Maps user traits to bikes)
+3. **AI Image Generation** (Generates 4:5 cinematic portraits)
+4. **Admin Dashboard** (Manage bikes, rules, prompts, and view stats)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Prerequisites
+- Node.js (v18+)
+- MySQL Server
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup Instructions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Install Dependencies:**
+   \`\`\`bash
+   npm install
+   \`\`\`
 
-## Learn More
+2. **Database Setup:**
+   Create a MySQL database (e.g., `yamaha_ai`).
 
-To learn more about Next.js, take a look at the following resources:
+3. **Environment Variables:**
+   Copy `.env.example` to `.env.local` and fill in the placeholders:
+   \`\`\`bash
+   cp .env.example .env.local
+   \`\`\`
+   Ensure you provide valid Gemini API keys, DB credentials, BulkSMSBD keys, and Admin credentials.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. **Initialize Database:**
+   Import `src/lib/server/schema.sql` into your MySQL database to create the tables. You can do this via your SQL client or CLI:
+   \`\`\`bash
+   mysql -u root -p yamaha_ai < src/lib/server/schema.sql
+   \`\`\`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. **Run the Development Server:**
+   \`\`\`bash
+   npm run dev
+   \`\`\`
 
-## Deploy on Vercel
+6. **Access Application:**
+   - User site: `http://localhost:3000`
+   - Admin Login: `http://localhost:3000/admin/login`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Configuration (via Admin Dashboard)
+Before users can successfully complete the flow, you must log in to the admin dashboard and:
+1. Add at least one **Bike**.
+2. Add at least one **Rule** (mapping quiz traits to a bike).
+3. Set an active **Prompt**.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Note for Production
+- In a production environment, you should replace the local filesystem saving (`public/uploads`) in the generation API with cloud storage like AWS S3.
+- Adjust `NODE_ENV` to `production` so secure cookies work properly.

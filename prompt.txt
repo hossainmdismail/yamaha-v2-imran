@@ -1,0 +1,163 @@
+You are an autonomous full-stack AI product builder.
+
+Build the “Yamaha Ride Personality Experience” microsite based on the SOW.
+
+CRITICAL WORKFLOW REQUIREMENT:
+Before building, create a detailed WORKPLAN.md with:
+- Task list grouped by phases
+- Clear acceptance criteria
+- Dependencies
+- Status checkboxes: [ ] To Do, [x] Done
+- Notes for blockers/issues
+
+You must follow the workplan step-by-step.
+After completing each task, update WORKPLAN.md and mark it as done.
+Do not skip steps unless documented in the workplan.
+
+PROJECT GOAL:
+Create a mobile-first AI microsite where users:
+1. Submit lead data
+2. Verify phone with OTP/SMS
+3. Take a Yamaha ride personality quiz
+4. Upload a photo
+5. Generate a cinematic AI image using Gemini
+6. Receive a Yamaha Persona Card
+7. Download/share the result
+8. Admin can manage users, rules, prompts, bikes, and analytics
+
+TECH REQUIREMENTS:
+
+Frontend:
+- Mobile-first responsive microsite
+- Lead capture form
+- OTP verification flow
+- Quiz flow under 60 seconds
+- Photo upload
+- AI generation loading/reveal screen
+- Persona result page
+- Download/share buttons
+
+Backend:
+- API routes for users, OTP, quiz, image generation, admin
+- MySQL database
+- Secure asset storage
+- Queue-ready AI generation structure
+- Input validation and error handling
+
+AI IMAGE GENERATION:
+Use Gemini as the AI provider.
+
+Environment variables:
+AI_PROVIDER=gemini
+AI_TEXT_MODEL=gemini-2.5-flash
+AI_IMAGE_MODEL=gemini-3.1-flash-image-preview
+AI_RESPONSES_MODEL=gemini-2.5-flash
+AI_IMAGE_SIZE=1K
+AI_IMAGE_ASPECT_RATIO=4:5
+AI_IMAGE_QUALITY=high
+AI_INPUT_FIDELITY=high
+AI_MAX_REFERENCE_IMAGES=3
+
+Important:
+- Do not hardcode API keys in source files.
+- Load all credentials from .env.
+- Create .env.example with placeholder values only.
+- Build Gemini image generation service for:
+  - user photo reference
+  - quiz-based prompt
+  - Yamaha bike mapping
+  - premium cinematic output
+  - 4:5 portrait persona card format
+
+SMS / OTP:
+Use BulkSMSBD for OTP delivery.
+
+Environment variables:
+BULKSMSBD_API_KEY=<from .env>
+BULKSMSBD_SENDER_ID=<from .env>
+OTP_SECRET=<from .env>
+
+Database:
+Use MySQL.
+
+Required env:
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=<from .env>
+DB_PASSWORD=<from .env>
+DB_NAME=yamaha_ai
+DB_CONNECTION_LIMIT=50
+
+Admin:
+Create admin dashboard with:
+- Login
+- User management
+- Lead export
+- Bike model management
+- Quiz-to-bike rule engine
+- Prompt management
+- Analytics dashboard
+- Generated asset overview
+
+Admin env:
+ADMIN_USERNAME=<from .env>
+ADMIN_PASSWORD=<from .env>
+ADMIN_SESSION_SECRET=<from .env>
+
+RULE ENGINE:
+Create configurable logic such as:
+- Speed Enthusiast + Urban Nightscapes → Yamaha R15M
+- Weekend Explorer + Mountain Trails → Yamaha adventure-style model
+- Daily Commuter + Urban → Yamaha commuter/scooter model
+
+Allow admin to edit this logic.
+
+PERSONA CARD:
+Generate a shareable 4:5 card including:
+- User name
+- Yamaha persona title
+- AI-generated image
+- Personality traits
+- Appreciation statement
+- Yamaha branding area
+- Download/share CTA
+
+CREATIVE DIRECTION:
+AI images must be:
+- Photorealistic
+- Premium / posh / cinematic
+- Brand-safe
+- Not cartoonish
+- Accurate motorcycle proportions
+- Consistent with uploaded user photo
+- Inclusive across age, gender, ethnicity, and appearance
+
+EXAMPLE AI PROMPT TEMPLATE:
+“Create a premium cinematic lifestyle portrait of the uploaded person with a Yamaha motorcycle. Preserve the person’s face, identity, age, and outfit style. Scene: {{destination}}. Riding personality: {{persona}}. Motorcycle model: {{bike_model}}. Mood: luxury automotive campaign, dramatic lighting, realistic reflections, professional brand photography, ultra-realistic, high detail, 4:5 portrait composition. Avoid cartoon, anime, distorted face, incorrect motorcycle geometry, fake logos, extra limbs, blurry output.”
+
+DELIVERABLES:
+1. WORKPLAN.md
+2. Full working frontend
+3. Backend APIs
+4. MySQL schema/migrations
+5. Gemini AI service
+6. BulkSMSBD OTP service
+7. Admin dashboard
+8. Persona card generator
+9. .env.example with placeholders
+10. README with setup and deployment instructions
+
+SECURITY REQUIREMENTS:
+- Never expose API keys to frontend
+- Never commit .env
+- Hash/admin-protect sensitive access
+- Validate uploads
+- Rate-limit OTP and AI generation
+- Sanitize user inputs
+- Store PII securely
+
+FINAL BEHAVIOR:
+Build like a production-ready product.
+Follow the workplan.
+Mark completed work with checkboxes.
+Document anything incomplete or blocked.
