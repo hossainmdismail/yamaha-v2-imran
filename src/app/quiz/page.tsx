@@ -6,21 +6,30 @@ import styles from './quiz.module.css';
 
 const QUESTIONS = [
   {
-    id: 'riding_style',
-    title: 'How would you describe your ideal weekend ride?',
+    id: 'riding_behavior',
+    title: 'How would you describe your riding behavior?',
     options: [
-      { id: 'Speed Enthusiast', title: 'Speed & Thrills', desc: 'Hitting the track or carving canyons.' },
-      { id: 'Weekend Explorer', title: 'Exploration', desc: 'Long journeys discovering new places.' },
-      { id: 'Daily Commuter', title: 'City Cruising', desc: 'Navigating urban landscapes with style.' },
+      { id: 'Weekend Explorer', title: 'Weekend Explorer', desc: 'Long journeys discovering new horizons.' },
+      { id: 'Daily Commuter', title: 'Daily Commuter', desc: 'Navigating the city with efficiency and style.' },
+      { id: 'Speed Enthusiast', title: 'Speed Enthusiast', desc: 'Thrilling performance and high-speed control.' },
     ]
   },
   {
-    id: 'environment',
-    title: 'Where do you feel most alive?',
+    id: 'destination',
+    title: 'Choose your favorite riding destination',
     options: [
-      { id: 'Urban Nightscapes', title: 'Neon City Lights', desc: 'The pulse of the city at night.' },
-      { id: 'Mountain Trails', title: 'Rugged Outdoors', desc: 'Off the beaten path in nature.' },
-      { id: 'Urban', title: 'Daylight Concrete', desc: 'Everyday urban environments.' },
+      { id: 'Urban Nightscapes', title: 'Urban Nightscapes', desc: 'Neon lights and city vibes.' },
+      { id: 'Coastal Highways', title: 'Coastal Highways', desc: 'Salty breeze and endless horizons.' },
+      { id: 'Mountain Trails', title: 'Mountain Trails', desc: 'Rugged terrain and breathtaking peaks.' },
+    ]
+  },
+  {
+    id: 'aspiration',
+    title: 'What is your ultimate riding aspiration?',
+    options: [
+      { id: 'Iconic Blue', title: 'Racing Blue', desc: 'The signature Yamaha racing spirit.' },
+      { id: 'Dark Side', title: 'Dark Side of Japan', desc: 'Aggressive styling and urban edge.' },
+      { id: 'Dream Bike', title: 'Dream Bike', desc: 'Uncompromising power and ultimate prestige.' },
     ]
   }
 ];

@@ -49,26 +49,35 @@ export async function POST(req: Request) {
     const base64Image = buffer.toString('base64');
     const mimeType = photo.type;
 
-    // Map persona to environment/destination
+    // Map persona (Behavior, Destination, Aspiration) to environment/destination
+    const traits = persona.split(',');
+    const behavior = traits[0];
+    const userDestination = traits[1];
+    const aspiration = traits[2];
+
     const destinationMap: Record<string, string> = {
-      'Speed Enthusiast,Urban': 'Dhaka City',
-      'Speed Enthusiast,Urban Nightscapes': 'Rainy Dhaka',
-      'Mountain Trails,Speed Enthusiast': 'Bandarban',
-      'Urban,Weekend Explorer': 'Padma Bridge',
-      'Urban Nightscapes,Weekend Explorer': 'Coxs Bazar',
-      'Mountain Trails,Weekend Explorer': 'Sajek',
-      'Daily Commuter,Urban': 'Dhaka City',
-      'Daily Commuter,Urban Nightscapes': 'Rainy Dhaka',
-      'Daily Commuter,Mountain Trails': 'Sreemangal',
+      'Urban Nightscapes': 'Dhaka City neon nightscape, rainy streets, futuristic vibes',
+      'Coastal Highways': 'Coxs Bazar Marine Drive, sunset beach background, palm trees',
+      'Mountain Trails': 'Sajek Valley, misty mountains, winding roads, sunrise',
     };
     
-    const destination = destinationMap[persona] || 'epic cinematic landscape';
+    const environment = destinationMap[userDestination] || 'scenic landscape';
 
     // Generate Text Persona Copy
     const personaCopy = await generatePersonaCopy(persona, bikeModel);
 
+    // Construct a high-priority multimodal prompt
+    const finalPromptTemplate = `
+      Create a single person premium cinematic lifestyle portrait of the uploaded person.
+      THE PERSON IN THE PHOTO MUST BE THE MAIN SUBJECT. PRESERVE FACIAL FEATURES EXACTLY.
+      The person is a "${behavior}" with a passion for "${aspiration}".
+      Scene: The person is riding or posing with a Yamaha ${bikeModel} in ${environment}.
+      Style: High-end automotive photography, 8k resolution, cinematic lighting, sharp focus on face.
+      Priority: 1. Face Match, 2. ${behavior} vibe, 3. ${bikeModel} integration, 4. ${environment} background.
+    `;
+
     // Generate Image
-    const generatedImageUrl = await generateCinematicImage(base64Image, mimeType, persona, bikeModel, destination, promptTemplate);
+    const generatedImageUrl = await generateCinematicImage(base64Image, mimeType, persona, bikeModel, environment, finalPromptTemplate);
 
     // Note: In a production app, we would upload the `generatedImageUrl` (base64 or buffer) to an S3 bucket
     // and store the public URL. For this MVP, we will store the base64 string directly or save it locally.
