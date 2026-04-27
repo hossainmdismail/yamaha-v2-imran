@@ -67,12 +67,15 @@ export async function generateCinematicImage(
     try {
       const apiKey = process.env.GEMINI_API_KEY;
       const parts: any[] = [{ text: finalPrompt }];
-      parts.push({
-        inlineData: {
-          mimeType: mimeType || "image/jpeg",
-          data: base64Image
-        }
-      });
+      // Push the reference image 3 times to force the vision encoder to heavily prioritize it
+      for (let i = 0; i < 3; i++) {
+        parts.push({
+          inlineData: {
+            mimeType: mimeType || "image/jpeg",
+            data: base64Image
+          }
+        });
+      }
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
         method: "POST",

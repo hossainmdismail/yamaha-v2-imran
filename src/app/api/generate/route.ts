@@ -72,9 +72,11 @@ export async function POST(req: Request) {
     const realismDirection = "Ultra photorealistic commercial motorcycle photography. Real Yamaha design language, real motorcycle proportions, perfectly scaled human anatomy, real materials, realistic lighting, shadows, and reflections. No illustration, no cartoon, no caricature, no exaggerated features.";
 
     const finalPromptTemplate = `
-      A premium, ultra-realistic lifestyle portrait of the person from the reference image seamlessly integrated into a beautiful cinematic scene.
+      Create a premium, ultra-realistic lifestyle portrait of the EXACT specific individual shown in the attached reference images.
       
-      SUBJECT: The rider has a realistic, perfectly proportioned adult human body. The face from the reference image is mapped naturally onto this body with matching skin tones and lighting.
+      SUBJECT IDENTITY (CRITICAL): YOU MUST 100% PRESERVE THE EXACT FACE, FACIAL HAIR, HAIRSTYLE, BONE STRUCTURE, AND AGE OF THE PERSON IN THE REFERENCE IMAGE. The face must be a flawless 1:1 match. Do not invent a new face or generalize the features.
+      
+      BODY & INTEGRATION: The rider has a realistic, perfectly proportioned adult human body. The exact face from the reference image is seamlessly integrated onto this body with matching skin tones and natural lighting.
       
       COMPOSITION: ${cameraFrame}
       

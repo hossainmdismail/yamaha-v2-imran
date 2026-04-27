@@ -38,14 +38,18 @@ export default function Quiz() {
   const router = useRouter();
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSelect = async (optionId: string) => {
-    const newAnswers = [...answers, optionId];
-    setAnswers(newAnswers);
+  const handleNext = async () => {
+    if (!selectedOption) return;
 
+    const newAnswers = [...answers, selectedOption];
+    
     if (currentQ < QUESTIONS.length - 1) {
-      setTimeout(() => setCurrentQ(currentQ + 1), 300);
+      setAnswers(newAnswers);
+      setSelectedOption(null);
+      setCurrentQ(currentQ + 1);
     } else {
       setLoading(true);
       try {
@@ -57,7 +61,6 @@ export default function Quiz() {
         const data = await res.json();
         
         if (res.ok && data.bike) {
-          // Store result in sessionStorage to use in upload step
           sessionStorage.setItem('quizResult', JSON.stringify({
             persona: data.persona,
             bikeId: data.bike.assigned_bike_id || data.bike.id,
@@ -80,38 +83,65 @@ export default function Quiz() {
 
   if (loading) {
     return (
-      <main className="page-container">
-        <div style={{ textAlign: 'center' }} className="fade-in">
+      <main className={styles.container}>
+        <div style={{ textAlign: 'center', marginTop: '100px' }} className="fade-in">
           <h2 className={styles.questionTitle}>Analyzing your traits...</h2>
-          <div className="spinner"></div>
+          <div className="spinner" style={{ margin: '0 auto' }}></div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="page-container">
-      <div className={`${styles.container} fade-in`} key={currentQ}>
-        <div className={styles.header}>
-          <div className={styles.progress}>Question {currentQ + 1} of {QUESTIONS.length}</div>
-          <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: `${progress}%` }}></div>
-          </div>
-          <h1 className={styles.questionTitle}>{question.title}</h1>
+    <main className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.questionTitle}>{question.title}</h1>
+        <p className={styles.subtitle}>Select an option to continue</p>
+        
+        <div className={styles.stepIndicator}>
+          Step {currentQ + 1} <span className={styles.stepMuted}>of {QUESTIONS.length}</span>
         </div>
+        
+        <div className={styles.progressBarContainer}>
+          <div className={styles.progressFill} style={{ width: `${progress}%` }}></div>
+        </div>
+      </div>
 
-        <div className={styles.optionsGrid}>
-          {question.options.map(opt => (
-            <button 
-              key={opt.id} 
-              className={styles.optionCard}
-              onClick={() => handleSelect(opt.id)}
-            >
-              <div className={styles.optionTitle}>{opt.title}</div>
-              <div className={styles.optionDesc}>{opt.desc}</div>
-            </button>
-          ))}
+      <div className={styles.questionWrapper} key={currentQ}>
+        <div className={styles.optionsList}>
+          {question.options.map(opt => {
+            const isSelected = selectedOption === opt.id;
+            return (
+              <button 
+                key={opt.id} 
+                className={`${styles.optionCard} ${isSelected ? styles.selected : ''}`}
+                onClick={() => setSelectedOption(opt.id)}
+              >
+                <div className={styles.iconWrapper}>
+                  {/* Generic icon shape */}
+                  <svg className={styles.optionIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="8" fill={isSelected ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" opacity={isSelected ? "1" : "0.5"} />
+                    {isSelected && <circle cx="12" cy="12" r="4" fill="var(--bg-dark)" />}
+                  </svg>
+                </div>
+                <div className={styles.optionTextContent}>
+                  <div className={styles.optionTitle}>{opt.title}</div>
+                  <div className={styles.optionDesc}>{opt.desc}</div>
+                </div>
+              </button>
+            );
+          })}
         </div>
+      </div>
+
+      <div className={styles.bottomAction}>
+        <button 
+          className={`${styles.nextButton} ${selectedOption ? styles.active : ''}`}
+          onClick={handleNext}
+          disabled={!selectedOption}
+        >
+          {currentQ < QUESTIONS.length - 1 ? 'Next' : 'Calculate Persona'}
+        </button>
       </div>
     </main>
   );
