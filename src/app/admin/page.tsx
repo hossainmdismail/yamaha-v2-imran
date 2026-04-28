@@ -238,7 +238,15 @@ export default function AdminDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
                   {generations.filter(g => g.user_id === selectedUser.id).map(g => (
                     <div key={g.id} style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '8px', overflow: 'hidden' }}>
-                      <img src={g.generated_image_url} alt="Generated Persona" style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                      <div style={{ position: 'relative', width: '100%', height: '200px', background: 'var(--bg-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px' }}>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Image deleted for security concern</span>
+                        <img 
+                          src={g.generated_image_url} 
+                          alt="Generated Persona" 
+                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      </div>
                       <div style={{ padding: '12px' }}>
                         <p style={{ fontSize: '12px', color: 'var(--accent)', marginBottom: '4px' }}>{g.bike_model}</p>
                         <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{new Date(g.created_at).toLocaleString()}</p>

@@ -123,9 +123,8 @@ export async function POST(req: Request) {
     // Generate Image
     const generatedImageUrl = await generateCinematicImage(base64Image, mimeType, persona, bikeModel, environment, finalPromptTemplate);
 
-    // Save locally
-    const fs = await import('fs');
-    const path = await import('path');
+    // Upload to AWS S3 instead of local public folder
+    const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
     const crypto = await import('crypto');
     
     // Generate secure random hash for public URL
@@ -135,23 +134,30 @@ export async function POST(req: Request) {
     const base64Data = generatedImageUrl.replace(/^data:image\/\w+;base64,/, "");
     const imgBuffer = Buffer.from(base64Data, 'base64');
     
-    const fileName = `gen_${hashId}.jpg`;
-    const publicDir = path.join(process.cwd(), 'public', 'uploads');
+    const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
+    const bucketName = process.env.S3_BUCKET_NAME;
     
-    // Create directory if not exists
-    if (!fs.existsSync(publicDir)) {
-      fs.mkdirSync(publicDir, { recursive: true });
+    if (!bucketName) {
+      throw new Error('S3_BUCKET_NAME is not configured in .env.local');
     }
 
-    const filePath = path.join(publicDir, fileName);
-    fs.writeFileSync(filePath, imgBuffer);
-
-    const publicUrl = `/uploads/${fileName}`;
+    const fileName = `generations/gen_${hashId}.jpg`;
+    
+    const s3Command = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: fileName,
+      Body: imgBuffer,
+      ContentType: 'image/jpeg',
+      ACL: 'public-read' // Make it publicly accessible
+    });
+    
+    await s3Client.send(s3Command);
+    const publicS3Url = `https://${bucketName}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${fileName}`;
 
     // Save to database
     await query<any>(
-      'INSERT INTO generations (user_id, bike_id, generated_image_url, persona_title, traits_summary, hash_id) VALUES (?, ?, ?, ?, ?, ?)',
-      [userId, bikeId, publicUrl, persona, personaCopy, hashId]
+      'INSERT INTO generations (user_id, bike_id, generated_image_url, persona_title, traits_summary, hash_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [userId, bikeId, publicS3Url, persona, personaCopy, hashId, 'completed']
     );
 
     // Clear the OTP session token so they must verify again to generate another image
@@ -161,8 +167,9 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       generationId: hashId,
-      imageUrl: publicUrl,
-      personaCopy
+      imageUrl: publicS3Url,
+      personaCopy,
+      status: 'completed'
     });
 
   } catch (error: any) {

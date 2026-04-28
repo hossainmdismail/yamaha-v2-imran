@@ -37,9 +37,11 @@ CREATE TABLE IF NOT EXISTS generations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     bike_id INT NOT NULL,
-    generated_image_url VARCHAR(500) NOT NULL,
+    hash_id VARCHAR(32) UNIQUE,
+    generated_image_url VARCHAR(500) NULL,
     persona_title VARCHAR(255) NOT NULL,
     traits_summary TEXT,
+    status ENUM('processing', 'completed', 'failed') DEFAULT 'completed',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (bike_id) REFERENCES bikes(id) ON DELETE CASCADE
@@ -52,4 +54,10 @@ CREATE TABLE IF NOT EXISTS otps (
     expires_at DATETIME NOT NULL,
     is_used BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS app_settings (
+    setting_key VARCHAR(100) PRIMARY KEY,
+    setting_value VARCHAR(255) NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

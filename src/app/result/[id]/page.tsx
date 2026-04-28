@@ -31,7 +31,7 @@ export default async function Result({ params }: { params: Promise<{ id: string 
       <div className={`${styles.container} fade-in`}>
         <div className={styles.card} id="persona-card">
           <div className={styles.imageWrapper}>
-            <img src={data.generated_image_url} alt="AI Persona" className={styles.genImage} crossOrigin="anonymous" />
+            <img src={data.generated_image_url} alt="AI Persona" className={styles.genImage} />
 
           </div>
           <div className={styles.content}>
