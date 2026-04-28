@@ -88,7 +88,7 @@ export default function AdminDashboard() {
   const handleExportCSV = (data: any[], filename: string) => {
     if (data.length === 0) return;
     const keys = Object.keys(data[0]);
-    const csvContent = "data:text/csv;charset=utf-8," 
+    const csvContent = "data:text/csv;charset=utf-8,"
       + keys.join(",") + "\n"
       + data.map(row => keys.map(k => `"${String(row[k] || '').replace(/"/g, '""')}"`).join(",")).join("\n");
     const encodedUri = encodeURI(csvContent);
@@ -119,13 +119,13 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 className={styles.header} style={{ marginBottom: 0 }}>Dashboard: {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
           {['users', 'generations', 'bikes', 'rules'].includes(activeTab) && (
-            <button 
-              className={styles.secondaryBtn} 
+            <button
+              className={styles.secondaryBtn}
               style={{ background: 'var(--accent)', color: 'white', padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer' }}
               onClick={() => handleExportCSV(
-                activeTab === 'users' ? users : 
-                activeTab === 'generations' ? generations : 
-                activeTab === 'bikes' ? bikes : rules, 
+                activeTab === 'users' ? users :
+                  activeTab === 'generations' ? generations :
+                    activeTab === 'bikes' ? bikes : rules,
                 `${activeTab}_export`
               )}
             >
@@ -160,32 +160,32 @@ export default function AdminDashboard() {
             <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '400px', background: 'var(--bg-surface)', padding: '24px', borderRadius: '12px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Daily Limit (per user)</label>
-                <input 
-                  type="number" 
-                  value={settings.max_daily_generations || ''} 
-                  onChange={e => setSettings({...settings, max_daily_generations: e.target.value})} 
+                <input
+                  type="number"
+                  value={settings.max_daily_generations || ''}
+                  onChange={e => setSettings({ ...settings, max_daily_generations: e.target.value })}
                   style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--bg-dark)', color: 'white' }}
-                  required 
+                  required
                 />
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Weekly Limit (per user)</label>
-                <input 
-                  type="number" 
-                  value={settings.max_weekly_generations || ''} 
-                  onChange={e => setSettings({...settings, max_weekly_generations: e.target.value})} 
+                <input
+                  type="number"
+                  value={settings.max_weekly_generations || ''}
+                  onChange={e => setSettings({ ...settings, max_weekly_generations: e.target.value })}
                   style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--bg-dark)', color: 'white' }}
-                  required 
+                  required
                 />
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Monthly Limit (per user)</label>
-                <input 
-                  type="number" 
-                  value={settings.max_monthly_generations || ''} 
-                  onChange={e => setSettings({...settings, max_monthly_generations: e.target.value})} 
+                <input
+                  type="number"
+                  value={settings.max_monthly_generations || ''}
+                  onChange={e => setSettings({ ...settings, max_monthly_generations: e.target.value })}
                   style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--bg-dark)', color: 'white' }}
-                  required 
+                  required
                 />
               </div>
               <button type="submit" className="primary-button" style={{ marginTop: '16px' }}>Save Limits</button>
@@ -204,8 +204,8 @@ export default function AdminDashboard() {
                     <td>{u.total_generations}</td>
                     <td>{new Date(u.created_at).toLocaleDateString()}</td>
                     <td>
-                      <button 
-                        onClick={() => setSelectedUser(u)} 
+                      <button
+                        onClick={() => setSelectedUser(u)}
                         style={{ background: 'var(--accent)', color: 'white', border: 'none', padding: '4px 12px', borderRadius: '4px', cursor: 'pointer' }}
                       >
                         View Info
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
               </div>
 
               <h3 style={{ fontSize: '18px', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>Generations ({selectedUser.total_generations})</h3>
-              
+
               {generations.filter(g => g.user_id === selectedUser.id).length === 0 ? (
                 <p style={{ color: 'var(--text-secondary)' }}>No images generated yet.</p>
               ) : (
@@ -239,11 +239,11 @@ export default function AdminDashboard() {
                   {generations.filter(g => g.user_id === selectedUser.id).map(g => (
                     <div key={g.id} style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '8px', overflow: 'hidden' }}>
                       <div style={{ position: 'relative', width: '100%', height: '200px', background: 'var(--bg-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px' }}>
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Image deleted for security concern</span>
-                        <img 
-                          src={g.generated_image_url} 
-                          alt="Generated Persona" 
-                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} 
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Image deleted by s3 bucket</span>
+                        <img
+                          src={g.generated_image_url}
+                          alt="Generated Persona"
+                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                           onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         />
                       </div>
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
               <tbody>
                 {generations.map(g => (
                   <tr key={g.id}>
-                    <td><a href={`/result/${g.hash_id}`} target="_blank" style={{ color: 'var(--accent)' }}>{g.hash_id.substring(0,8)}...</a></td>
+                    <td><a href={`/result/${g.hash_id}`} target="_blank" style={{ color: 'var(--accent)' }}>{g.hash_id.substring(0, 8)}...</a></td>
                     <td>{g.user_name}</td>
                     <td>{g.user_phone}</td>
                     <td>{g.bike_model}</td>
@@ -283,8 +283,8 @@ export default function AdminDashboard() {
         {activeTab === 'bikes' && (
           <div>
             <form onSubmit={handleAddBike} className={styles.formGrid}>
-              <input placeholder="Model Name" value={newBike.model_name} onChange={e => setNewBike({...newBike, model_name: e.target.value})} required />
-              <input placeholder="Type (e.g. Sport, Scooter)" value={newBike.type} onChange={e => setNewBike({...newBike, type: e.target.value})} required />
+              <input placeholder="Model Name" value={newBike.model_name} onChange={e => setNewBike({ ...newBike, model_name: e.target.value })} required />
+              <input placeholder="Type (e.g. Sport, Scooter)" value={newBike.type} onChange={e => setNewBike({ ...newBike, type: e.target.value })} required />
               <button type="submit" className="primary-button" style={{ gridColumn: 'span 2' }}>Add Bike</button>
             </form>
 
@@ -307,8 +307,8 @@ export default function AdminDashboard() {
         {activeTab === 'rules' && (
           <div>
             <form onSubmit={handleAddRule} className={styles.formGrid}>
-              <input placeholder="Traits (comma separated)" value={newRule.trait_combination} onChange={e => setNewRule({...newRule, trait_combination: e.target.value})} required />
-              <select value={newRule.assigned_bike_id} onChange={e => setNewRule({...newRule, assigned_bike_id: e.target.value})} required>
+              <input placeholder="Traits (comma separated)" value={newRule.trait_combination} onChange={e => setNewRule({ ...newRule, trait_combination: e.target.value })} required />
+              <select value={newRule.assigned_bike_id} onChange={e => setNewRule({ ...newRule, assigned_bike_id: e.target.value })} required>
                 <option value="">Select Bike...</option>
                 {bikes.map(b => <option key={b.id} value={b.id}>{b.model_name}</option>)}
               </select>
