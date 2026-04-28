@@ -24,6 +24,11 @@ export default function Upload() {
   const [quizData, setQuizData] = useState<any>(null);
 
   useEffect(() => {
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      router.push('/');
+      return;
+    }
+
     const data = sessionStorage.getItem('quizResult');
     if (data) {
       setQuizData(JSON.parse(data));
@@ -34,12 +39,25 @@ export default function Upload() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+    
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (loading) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
     if (loading) {
+      window.addEventListener('beforeunload', handleBeforeUnload);
       interval = setInterval(() => {
         setLoadingStep((prev) => (prev + 1) % LOADING_MESSAGES.length);
       }, 3000);
     }
-    return () => clearInterval(interval);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, [loading]);
 
   const resizeImage = (file: File): Promise<Blob> => {
@@ -114,6 +132,9 @@ export default function Upload() {
       const data = await res.json();
 
       if (res.ok && data.success) {
+        localStorage.removeItem('isAuthenticated');
+        sessionStorage.removeItem('quizState');
+        sessionStorage.removeItem('quizResult');
         router.push(`/result/${data.generationId}`);
       } else {
         setError(data.error || 'Generation failed');

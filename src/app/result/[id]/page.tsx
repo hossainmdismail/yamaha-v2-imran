@@ -6,9 +6,9 @@ import ResultActions from './ResultActions';
 
 export default async function Result({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const id = parseInt(resolvedParams.id, 10);
+  const hashId = resolvedParams.id;
 
-  if (isNaN(id)) {
+  if (!hashId) {
     notFound();
   }
 
@@ -17,8 +17,8 @@ export default async function Result({ params }: { params: Promise<{ id: string 
     FROM generations g
     JOIN users u ON g.user_id = u.id
     JOIN bikes b ON g.bike_id = b.id
-    WHERE g.id = ?
-  `, [id]);
+    WHERE g.hash_id = ?
+  `, [hashId]);
 
   if (generations.length === 0) {
     notFound();

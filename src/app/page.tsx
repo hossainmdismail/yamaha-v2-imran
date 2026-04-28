@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 
@@ -13,6 +13,13 @@ export default function Home() {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Auto-redirect if already verified
+  useEffect(() => {
+    if (localStorage.getItem('isAuthenticated') === 'true') {
+      router.push('/quiz');
+    }
+  }, [router]);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +70,7 @@ export default function Home() {
       const data = await res.json();
 
       if (res.ok) {
+        localStorage.setItem('isAuthenticated', 'true');
         router.push('/quiz');
       } else {
         setError(data.error || 'Invalid OTP');

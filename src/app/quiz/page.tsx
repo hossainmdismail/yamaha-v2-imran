@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './quiz.module.css';
 
@@ -40,6 +40,46 @@ export default function Quiz() {
   const [answers, setAnswers] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Authentication check & Load state from sessionStorage on mount
+  useEffect(() => {
+    // If not authenticated, kick back to OTP page
+    if (localStorage.getItem('isAuthenticated') !== 'true') {
+      router.push('/');
+      return;
+    }
+
+    const savedState = sessionStorage.getItem('quizState');
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        setCurrentQ(parsed.currentQ || 0);
+        setAnswers(parsed.answers || []);
+        setSelectedOption(parsed.selectedOption || null);
+      } catch (e) {}
+    }
+    setIsInitialized(true);
+  }, [router]);
+
+  // Save state to sessionStorage on every change
+  useEffect(() => {
+    if (isInitialized) {
+      sessionStorage.setItem('quizState', JSON.stringify({ currentQ, answers, selectedOption }));
+    }
+  }, [currentQ, answers, selectedOption, isInitialized]);
+
+  // Prevent accidental reload during loading
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (loading) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [loading]);
 
   const handleNext = async () => {
     if (!selectedOption) return;

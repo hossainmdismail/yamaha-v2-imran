@@ -32,6 +32,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
     }
 
+    // Rate Limiting Check
+    const settings = await query<any[]>('SELECT setting_key, setting_value FROM app_settings');
+    const getSetting = (key: string, def: number) => {
+      const s = settings.find(x => x.setting_key === key);
+      return s ? parseInt(s.setting_value, 10) : def;
+    };
+    
+    const maxDaily = getSetting('max_daily_generations', 10);
+    const maxWeekly = getSetting('max_weekly_generations', 50);
+    const maxMonthly = getSetting('max_monthly_generations', 100);
+
+    const [dailyCountRes, weeklyCountRes, monthlyCountRes] = await Promise.all([
+      query<any[]>('SELECT COUNT(*) as count FROM generations WHERE user_id = ? AND created_at > NOW() - INTERVAL 1 DAY', [userId]),
+      query<any[]>('SELECT COUNT(*) as count FROM generations WHERE user_id = ? AND created_at > NOW() - INTERVAL 1 WEEK', [userId]),
+      query<any[]>('SELECT COUNT(*) as count FROM generations WHERE user_id = ? AND created_at > NOW() - INTERVAL 1 MONTH', [userId])
+    ]);
+
+    if (dailyCountRes[0].count >= maxDaily) {
+      return NextResponse.json({ error: `You have reached the daily limit of ${maxDaily} images. Please try again tomorrow.` }, { status: 429 });
+    }
+    if (weeklyCountRes[0].count >= maxWeekly) {
+      return NextResponse.json({ error: `You have reached the weekly limit of ${maxWeekly} images. Please try again next week.` }, { status: 429 });
+    }
+    if (monthlyCountRes[0].count >= maxMonthly) {
+      return NextResponse.json({ error: `You have reached the monthly limit of ${maxMonthly} images. Please try again next month.` }, { status: 429 });
+    }
+
     // Get bike details
     const bikes = await query<any[]>('SELECT model_name FROM bikes WHERE id = ?', [bikeId]);
     if (bikes.length === 0) {
@@ -96,17 +123,19 @@ export async function POST(req: Request) {
     // Generate Image
     const generatedImageUrl = await generateCinematicImage(base64Image, mimeType, persona, bikeModel, environment, finalPromptTemplate);
 
-    // Note: In a production app, we would upload the `generatedImageUrl` (base64 or buffer) to an S3 bucket
-    // and store the public URL. For this MVP, we will store the base64 string directly or save it locally.
-    // Given base64 can be large, saving locally is better.
+    // Save locally
     const fs = await import('fs');
     const path = await import('path');
+    const crypto = await import('crypto');
+    
+    // Generate secure random hash for public URL
+    const hashId = crypto.randomBytes(16).toString('hex');
     
     // Convert base64 data URI to buffer
     const base64Data = generatedImageUrl.replace(/^data:image\/\w+;base64,/, "");
     const imgBuffer = Buffer.from(base64Data, 'base64');
     
-    const fileName = `gen_${userId}_${Date.now()}.jpg`;
+    const fileName = `gen_${hashId}.jpg`;
     const publicDir = path.join(process.cwd(), 'public', 'uploads');
     
     // Create directory if not exists
@@ -120,20 +149,39 @@ export async function POST(req: Request) {
     const publicUrl = `/uploads/${fileName}`;
 
     // Save to database
-    const insertRes = await query<any>(
-      'INSERT INTO generations (user_id, bike_id, generated_image_url, persona_title, traits_summary) VALUES (?, ?, ?, ?, ?)',
-      [userId, bikeId, publicUrl, persona, personaCopy]
+    await query<any>(
+      'INSERT INTO generations (user_id, bike_id, generated_image_url, persona_title, traits_summary, hash_id) VALUES (?, ?, ?, ?, ?, ?)',
+      [userId, bikeId, publicUrl, persona, personaCopy, hashId]
     );
+
+    // Clear the OTP session token so they must verify again to generate another image
+    const cookieStoreForDelete = await cookies();
+    cookieStoreForDelete.delete('user_token');
 
     return NextResponse.json({
       success: true,
-      generationId: insertRes.insertId,
+      generationId: hashId,
       imageUrl: publicUrl,
       personaCopy
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Generate API error:', error);
-    return NextResponse.json({ error: 'Generation failed' }, { status: 500 });
+    
+    // Provide granular error messages back to the user
+    let errorMessage = 'Image generation failed. Please try again.';
+    
+    if (error.message) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes('503') || msg.includes('overloaded')) {
+        errorMessage = 'AI servers are currently overloaded. Please try again in a few moments.';
+      } else if (msg.includes('safety') || msg.includes('blocked') || msg.includes('policy')) {
+        errorMessage = 'The generated image was blocked by AI safety filters. Please try a different photo.';
+      } else if (msg.includes('payload') || msg.includes('no image')) {
+        errorMessage = 'The AI model failed to construct the image. Please try a different photo or angle.';
+      }
+    }
+    
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
