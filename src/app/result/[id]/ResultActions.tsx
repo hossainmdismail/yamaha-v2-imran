@@ -16,10 +16,11 @@ export default function ResultActions({ imageUrl, userName }: ResultActionsProps
     if (downloadState !== 'idle') return;
     setDownloadState('downloading');
     
-    // Simulate slight delay for animation
+    // Use the backend proxy to download cross-origin images from S3
     setTimeout(() => {
+      const proxyUrl = `/api/download?url=${encodeURIComponent(imageUrl)}`;
       const link = document.createElement('a');
-      link.href = imageUrl;
+      link.href = proxyUrl;
       link.download = `Yamaha_Persona_${userName.replace(/\s+/g, '_')}.jpg`;
       document.body.appendChild(link);
       link.click();
