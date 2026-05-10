@@ -124,6 +124,7 @@ export default function UsersPage() {
                   </a>
                   <div style={{ padding: '12px', fontSize: '11px' }}>
                     <div style={{ fontWeight: 600, color: 'white', marginBottom: '4px' }}>{gen.bike_model}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.55)', marginBottom: '4px' }}>{gen.resolved_bike_color || 'Color N/A'}</div>
                     <div style={{ color: 'rgba(255,255,255,0.4)' }}>{new Date(gen.created_at).toLocaleDateString()}</div>
                   </div>
                   <button 

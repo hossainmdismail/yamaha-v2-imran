@@ -37,7 +37,6 @@ export default function AdminOverview() {
     { label: 'View Generations', path: '/admin/generations', icon: '🖼️', color: '#00ff7a' },
     { label: 'Bike Inventory', path: '/admin/bikes', icon: '🏍️', color: '#ff7a00' },
     { label: 'Quiz Logic', path: '/admin/quiz', icon: '❓', color: '#7a00ff' },
-    { label: 'AI Prompts', path: '/admin/prompts', icon: '✨', color: '#ff007a' },
     { label: 'System Settings', path: '/admin/settings', icon: '⚙️', color: '#888' },
   ];
 

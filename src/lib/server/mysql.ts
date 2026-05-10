@@ -8,7 +8,7 @@ const pool = mysql.createPool({
   port: parseInt(process.env.DB_PORT || '3306'),
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'yamaha_ai',
+  database: process.env.DB_NAME || 'imagegro_yamaha',
   waitForConnections: true,
   connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '50'),
   queueLimit: 0,

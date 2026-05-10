@@ -87,11 +87,9 @@ export default function Quiz() {
         });
         const data = await res.json();
 
-        if (res.ok && data.bike) {
+        if (res.ok && data.persona) {
           sessionStorage.setItem('quizResult', JSON.stringify({
-            persona: data.persona,
-            bikeId: data.bike.id,
-            bikeModel: data.bike.model_name
+            persona: data.persona
           }));
           router.push('/upload');
         } else {

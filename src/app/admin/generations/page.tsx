@@ -49,7 +49,7 @@ export default function GenerationsPage() {
     
     if (dataToExport.length === 0) return;
 
-    const keys = ['id', 'user_name', 'user_phone', 'bike_model', 'persona_title', 'created_at', 'generated_image_url'];
+    const keys = ['id', 'user_name', 'user_phone', 'bike_model', 'resolved_bike_color', 'persona_title', 'created_at', 'generated_image_url'];
     const csvContent = "data:text/csv;charset=utf-8,"
       + keys.join(",") + "\n"
       + dataToExport.map(row => keys.map(k => `"${String(row[k] || '').replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -92,13 +92,14 @@ export default function GenerationsPage() {
               <th>User</th>
               <th>Phone</th>
               <th>Bike</th>
+              <th>Color</th>
               <th>Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px' }}>Loading...</td></tr>
             ) : (
               generations.map(gen => (
                 <tr key={gen.id} className={selectedIds.includes(gen.id) ? styles.rowSelected : ''}>
@@ -124,6 +125,7 @@ export default function GenerationsPage() {
                       {gen.bike_model}
                     </span>
                   </td>
+                  <td style={{ fontSize: '12px', color: 'rgba(255,255,255,0.65)' }}>{gen.resolved_bike_color || 'N/A'}</td>
                   <td style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
                     {new Date(gen.created_at).toLocaleString()}
                   </td>

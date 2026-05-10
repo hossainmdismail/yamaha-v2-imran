@@ -34,7 +34,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Generations', path: '/admin/generations', tab: 'generations' },
     { label: 'Bikes', path: '/admin/bikes', tab: 'bikes' },
     { label: 'Quiz Manager', path: '/admin/quiz', tab: 'quiz' },
-    { label: 'Prompts', path: '/admin/prompts', tab: 'prompts' },
     { label: 'Settings', path: '/admin/settings', tab: 'settings' },
   ];
 

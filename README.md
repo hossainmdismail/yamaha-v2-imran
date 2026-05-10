@@ -14,7 +14,7 @@ A mobile-first AI microsite where users can submit leads, verify their phone num
 1. **Lead Capture & OTP Verification** (Rate Limited & Secure)
 2. **Dynamic Quiz** (Maps user traits to bikes)
 3. **AI Image Generation** (Generates 4:5 cinematic portraits)
-4. **Admin Dashboard** (Manage bikes, rules, prompts, and view stats)
+4. **Admin Dashboard** (Manage bikes, weighted quiz logic, and view stats)
 
 ## Prerequisites
 - Node.js (v18+)
@@ -28,7 +28,7 @@ A mobile-first AI microsite where users can submit leads, verify their phone num
    \`\`\`
 
 2. **Database Setup:**
-   Create a MySQL database (e.g., `yamaha_ai`).
+   Create a MySQL database (e.g., `imagegro_yamaha`).
 
 3. **Environment Variables:**
    Copy `.env.example` to `.env.local` and fill in the placeholders:
@@ -40,7 +40,7 @@ A mobile-first AI microsite where users can submit leads, verify their phone num
 4. **Initialize Database:**
    Import `src/lib/server/schema.sql` into your MySQL database to create the tables. You can do this via your SQL client or CLI:
    \`\`\`bash
-   mysql -u root -p yamaha_ai < src/lib/server/schema.sql
+   mysql -u root -p imagegro_yamaha < src/lib/server/schema.sql
    \`\`\`
 
 5. **Run the Development Server:**
@@ -55,8 +55,8 @@ A mobile-first AI microsite where users can submit leads, verify their phone num
 ## Configuration (via Admin Dashboard)
 Before users can successfully complete the flow, you must log in to the admin dashboard and:
 1. Add at least one **Bike**.
-2. Add at least one **Rule** (mapping quiz traits to a bike).
-3. Set an active **Prompt**.
+2. Add quiz **Behavior** options and map their bike priorities so each option totals 100%.
+3. Add **Destination** scene metadata and **Aspiration** color metadata.
 
 ## Note for Production
 - In a production environment, you should replace the local filesystem saving (`public/uploads`) in the generation API with cloud storage like AWS S3.

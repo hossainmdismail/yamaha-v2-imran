@@ -24,6 +24,7 @@ export async function GET(req: Request) {
           g.hash_id,
           g.generated_image_url,
           g.persona_title,
+          g.resolved_bike_color,
           g.created_at,
           u.id as user_id,
           u.name as user_name,
@@ -49,6 +50,27 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     console.error('Admin generations error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    await checkAdmin();
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'Generation ID is required' }, { status: 400 });
+    }
+
+    await query('DELETE FROM generations WHERE id = ?', [id]);
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    console.error('Admin generations delete error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

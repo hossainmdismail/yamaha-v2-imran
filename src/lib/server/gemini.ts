@@ -1,5 +1,4 @@
 import { GoogleGenAI } from '@google/genai';
-import fs from 'fs';
 
 const getClient = () => {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -45,20 +44,10 @@ export async function generatePersonaCopy(personaTitle: string, bikeModel: strin
 export async function generateCinematicImage(
   base64Image: string,
   mimeType: string,
-  persona: string,
-  bikeModel: string,
-  destination: string,
-  promptTemplate: string,
-  bikeImagePath?: string,
-  envImagePath?: string
+  prompt: string
 ) {
   const client = getClient();
   const model = process.env.AI_IMAGE_MODEL || 'gemini-3.1-flash-image-preview';
-
-  let finalPrompt = promptTemplate
-    .replace('{{persona}}', persona)
-    .replace('{{bike_model}}', bikeModel)
-    .replace('{{destination}}', destination);
 
   let retries = 3;
   let delay = 2000;
@@ -66,7 +55,7 @@ export async function generateCinematicImage(
   while (retries > 0) {
     try {
       const apiKey = process.env.GEMINI_API_KEY;
-      const parts: any[] = [{ text: finalPrompt }];
+      const parts: any[] = [{ text: prompt }];
       // Push the reference image 3 times to force the vision encoder to heavily prioritize it
       for (let i = 0; i < 3; i++) {
         parts.push({

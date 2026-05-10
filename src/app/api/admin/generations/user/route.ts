@@ -23,6 +23,7 @@ export async function GET(req: Request) {
         g.id,
         g.hash_id,
         g.generated_image_url,
+        g.resolved_bike_color,
         g.created_at,
         b.model_name as bike_model
       FROM generations g

@@ -123,7 +123,6 @@ export default function Upload() {
       const formData = new FormData();
       formData.append('photo', resizedBlob, 'upload.jpg');
       formData.append('persona', quizData.persona);
-      formData.append('bikeId', quizData.bikeId);
 
       const res = await fetch('/api/generate', {
         method: 'POST',

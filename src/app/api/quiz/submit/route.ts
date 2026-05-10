@@ -22,23 +22,7 @@ export async function POST(req: Request) {
     const destinationId = traits[1];
     const aspirationId = traits[2];
 
-    // 1. Pick a bike based on Behavior
-    const mappedBikes = await query<any[]>(`
-      SELECT b.id, b.model_name, b.type, b.description, b.image_url, b.colors
-      FROM option_bike_mappings m
-      JOIN bikes b ON m.bike_id = b.id
-      WHERE m.option_id = ?
-    `, [behaviorId]);
-
-    let assignedBike;
-    if (mappedBikes.length > 0) {
-      assignedBike = mappedBikes[Math.floor(Math.random() * mappedBikes.length)];
-    } else {
-      const anyBike = await query<any[]>('SELECT id, model_name, type, description, image_url, colors FROM bikes LIMIT 1');
-      assignedBike = anyBike[0];
-    }
-
-    // 2. Get Destination & Aspiration metadata
+    // 1. Get Destination & Aspiration metadata
     const [dest, asp] = await Promise.all([
       query<any[]>('SELECT option_text, metadata FROM quiz_options WHERE id = ?', [destinationId]),
       query<any[]>('SELECT option_text, metadata FROM quiz_options WHERE id = ?', [aspirationId])
@@ -48,34 +32,22 @@ export async function POST(req: Request) {
     const aspirationData = (typeof aspirationRaw === 'string' ? JSON.parse(aspirationRaw) : aspirationRaw) || {};
     const preferredColor = aspirationData.color || '';
     
-    // Parse bike colors
-    let availableColors: string[] = [];
-    try {
-      availableColors = typeof assignedBike.colors === 'string' ? JSON.parse(assignedBike.colors) : (assignedBike.colors || []);
-    } catch(e) {}
-
-    // Logic: Find closest color match or fallback to first available
-    let finalColor = availableColors.length > 0 ? availableColors[0] : (preferredColor || 'Original');
-    if (preferredColor && availableColors.length > 0) {
-      const match = availableColors.find(c => c.toLowerCase().includes(preferredColor.toLowerCase()));
-      if (match) finalColor = match;
-    }
-
     const destRaw = dest[0]?.metadata;
     const destData = (typeof destRaw === 'string' ? JSON.parse(destRaw) : destRaw) || {};
 
     const resultPersona = {
       behavior: behaviorId,
+      destination_id: Number(destinationId),
       destination: dest[0]?.option_text || 'Unknown',
       destination_meta: destData,
+      aspiration_id: Number(aspirationId),
       aspiration: asp[0]?.option_text || 'Unknown',
-      aspiration_meta: { ...aspirationData, final_color: finalColor }
+      aspiration_meta: aspirationData
     };
 
     return NextResponse.json({
       success: true,
-      persona: JSON.stringify(resultPersona),
-      bike: assignedBike
+      persona: JSON.stringify(resultPersona)
     });
   } catch (error) {
     console.error('Quiz submit error:', error);
