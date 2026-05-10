@@ -35,12 +35,17 @@ export default function Home() {
       const res = await fetch('/api/auth/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ name, phone, dob }),
       });
       const data = await res.json();
 
       if (res.ok) {
-        setStep('otp');
+        if (data.bypassOtp) {
+          localStorage.setItem('isAuthenticated', 'true');
+          router.push('/quiz');
+        } else {
+          setStep('otp');
+        }
       } else {
         setError(data.error || 'Failed to send OTP');
       }
@@ -89,7 +94,7 @@ export default function Home() {
           <div className={styles.badge}>Powered by AI</div>
           <h1 className={styles.title}>Unleash Your Ride Personality</h1>
           <p className={styles.subtitle}>
-            Experience the fusion of human spirit and Yamaha engineering. 
+            Experience the fusion of human spirit and Yamaha engineering.
             Discover which machine matches your soul.
           </p>
           <div style={{ width: '100%', maxWidth: '320px' }}>
@@ -107,26 +112,26 @@ export default function Home() {
               <p className={styles.subtitle} style={{ fontSize: '14px', marginBottom: '32px' }}>
                 Join the elite Yamaha community.
               </p>
-              
+
               {error && <div className={styles.error}>{error}</div>}
-              
+
               <form onSubmit={handleSendOtp}>
                 <div className={styles.formGroup}>
                   <label>Full Name</label>
-                  <input 
-                    type="text" 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
-                    placeholder="Enter your name" 
-                    required 
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your name"
+                    required
                   />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Age Range</label>
-                  <select 
-                    value={dob} 
-                    onChange={(e) => setDob(e.target.value)} 
-                    required 
+                  <select
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    required
                   >
                     <option value="" disabled>Select your age range</option>
                     <option value="18-24">18-24</option>
@@ -138,16 +143,16 @@ export default function Home() {
                 </div>
                 <div className={styles.formGroup}>
                   <label>Phone Number</label>
-                  <input 
-                    type="tel" 
-                    value={phone} 
-                    onChange={(e) => setPhone(e.target.value)} 
-                    placeholder="e.g. 017XXXXXXXX" 
-                    required 
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="e.g. 017XXXXXXXX"
+                    required
                   />
                 </div>
                 <button type="submit" className="primary-button" disabled={loading}>
-                  {loading ? 'Processing...' : 'Send OTP'}
+                  {loading ? 'Processing...' : 'Continue'}
                 </button>
               </form>
             </>
@@ -159,19 +164,19 @@ export default function Home() {
               <p className={styles.subtitle} style={{ fontSize: '14px', marginBottom: '32px' }}>
                 Enter the code sent to <b>{phone}</b>
               </p>
-              
+
               {error && <div className={styles.error}>{error}</div>}
-              
+
               <form onSubmit={handleVerifyOtp}>
                 <div className={styles.formGroup}>
-                  <input 
-                    type="text" 
-                    maxLength={4} 
-                    value={otp} 
-                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))} 
-                    placeholder="••••" 
+                  <input
+                    type="text"
+                    maxLength={4}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="••••"
                     style={{ textAlign: 'center', letterSpacing: '8px', fontSize: '24px' }}
-                    required 
+                    required
                   />
                 </div>
                 <button type="submit" className="primary-button" disabled={loading}>

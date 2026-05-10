@@ -2,9 +2,13 @@ import { NextResponse } from 'next/server';
 import { query } from '@/lib/server/mysql';
 import { sendSMS } from '@/lib/server/bulksmsbd';
 import { z } from 'zod';
+import { cookies } from 'next/headers';
+import { SignJWT } from 'jose';
 
 const sendOtpSchema = z.object({
-  phone: z.string().min(10).max(15)
+  name: z.string().min(1).optional(),
+  phone: z.string().min(10).max(15),
+  dob: z.string().optional()
 });
 
 export async function POST(req: Request) {
@@ -16,7 +20,64 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 });
     }
 
-    const { phone } = result.data;
+    const { name, phone, dob } = result.data;
+
+    // Check if OTP is disabled in settings
+    const settings = await query<any[]>("SELECT setting_value FROM app_settings WHERE setting_key = 'otp_enabled'");
+    const otpEnabled = settings.length > 0 ? settings[0].setting_value !== 'false' : true;
+
+    if (!otpEnabled) {
+      // Bypass OTP flow
+      let users = await query<any[]>(`SELECT id FROM users WHERE phone = ?`, [phone]);
+      let userId: number;
+
+      if (users.length === 0) {
+        if (!name) {
+          return NextResponse.json({ error: 'Name is required for new users' }, { status: 400 });
+        }
+        const insertResult = await query<any>(
+          `INSERT INTO users (name, phone, dob) VALUES (?, ?, ?)`,
+          [name, phone, dob]
+        );
+        userId = insertResult.insertId;
+      } else {
+        userId = users[0].id;
+        if (name || dob) {
+          let updateSql = 'UPDATE users SET ';
+          const params: any[] = [];
+          if (name) {
+            updateSql += 'name = ?, ';
+            params.push(name);
+          }
+          if (dob) {
+            updateSql += 'dob = ?, ';
+            params.push(dob);
+          }
+          updateSql = updateSql.slice(0, -2) + ' WHERE id = ?';
+          params.push(userId);
+          await query(updateSql, params);
+        }
+      }
+
+      // Create session token
+      const secret = process.env.OTP_SECRET || 'fallback_secret_please_change';
+      const token = await new SignJWT({ userId, phone })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('2h')
+        .sign(new TextEncoder().encode(secret));
+
+      const cookieStore = await cookies();
+      cookieStore.set('user_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 60 * 60 * 2 // 2 hours
+      });
+
+      return NextResponse.json({ success: true, bypassOtp: true, userId });
+    }
 
     // Rate limiting: check if OTP was sent recently (e.g. last 1 minute)
     const recentOtps = await query<any[]>(

@@ -71,6 +71,21 @@ export default function SettingsPage() {
               required 
             />
           </div>
+
+          <div>
+            <label className={styles.statLabel}>Require OTP Verification</label>
+            <select 
+              value={settings.otp_enabled || 'true'} 
+              onChange={e => setSettings({ ...settings, otp_enabled: e.target.value })} 
+              className={styles.input} 
+            >
+              <option value="true">Enabled (Require OTP)</option>
+              <option value="false">Disabled (Bypass OTP)</option>
+            </select>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginTop: '4px' }}>
+              If disabled, users can access the quiz immediately after entering their phone number.
+            </p>
+          </div>
           
           <div style={{ marginTop: '12px' }}>
             <button type="submit" className={styles.primaryBtn}>Save Configurations</button>

@@ -43,17 +43,17 @@ export default function GenerationsPage() {
   };
 
   const handleExport = () => {
-    const dataToExport = selectedIds.length > 0 
+    const dataToExport = selectedIds.length > 0
       ? generations.filter(g => selectedIds.includes(g.id))
       : generations;
-    
+
     if (dataToExport.length === 0) return;
 
-    const keys = ['id', 'user_name', 'user_phone', 'bike_model', 'resolved_bike_color', 'persona_title', 'created_at', 'generated_image_url'];
+    const keys = ['id', 'user_name', 'user_phone', 'bike_model', 'generated_image_url', 'resolved_bike_color', 'created_at'];
     const csvContent = "data:text/csv;charset=utf-8,"
       + keys.join(",") + "\n"
       + dataToExport.map(row => keys.map(k => `"${String(row[k] || '').replace(/"/g, '""')}"`).join(",")).join("\n");
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -108,9 +108,9 @@ export default function GenerationsPage() {
                   </td>
                   <td>
                     <a href={`/result/${gen.hash_id}`} target="_blank" rel="noopener noreferrer">
-                      <img 
-                        src={gen.generated_image_url} 
-                        alt="Gen" 
+                      <img
+                        src={gen.generated_image_url}
+                        alt="Gen"
                         style={{ width: '24px', height: '24px', borderRadius: '4px', objectFit: 'cover', background: '#222' }}
                         onError={(e) => {
                           (e.target as any).src = "https://via.placeholder.com/24?text=X";
