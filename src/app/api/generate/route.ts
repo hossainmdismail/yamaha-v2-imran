@@ -81,10 +81,9 @@ export async function POST(req: Request) {
     const destinationMood = personaData.destination_meta?.personality || `${personaData.destination} rider energy`;
     const aspirationTone = personaData.aspiration || 'signature rider energy';
 
-    // Generate Text Persona Copy
-    console.log('Generating persona copy...');
+    console.log('Generating persona copy and image in parallel...');
     const personaSummary = `${destinationMood} with ${aspirationTone.toLowerCase()}`;
-    const personaCopy = await generatePersonaCopy(personaSummary, bikeModel);
+    
     const finalPrompt = buildImagePrompt({
       bikeModel,
       bikeColor,
@@ -93,15 +92,14 @@ export async function POST(req: Request) {
       aspiration: aspirationTone,
     });
 
-    // Generate Image
-    console.log('Starting Gemini image generation...');
-    let generatedImageUrl;
-    try {
-      generatedImageUrl = await generateCinematicImage(base64Image, mimeType, finalPrompt);
-    } catch (aiError: any) {
-      console.error('Gemini Image Generation Error:', aiError);
-      throw new Error(`AI Generation failed: ${aiError.message || 'Unknown AI error'}`);
-    }
+    // Run both AI tasks concurrently to reduce response latency
+    const [personaCopy, generatedImageUrl] = await Promise.all([
+      generatePersonaCopy(personaSummary, bikeModel),
+      generateCinematicImage(base64Image, mimeType, finalPrompt).catch((aiError: any) => {
+        console.error('Gemini Image Generation Error:', aiError);
+        throw new Error(`AI Generation failed: ${aiError.message || 'Unknown AI error'}`);
+      })
+    ]);
 
     // Upload to AWS S3 instead of local public folder
     console.log('Uploading to S3...');
