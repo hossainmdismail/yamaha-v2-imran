@@ -6,9 +6,17 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
 export async function POST(req: Request) {
+  const startedAt = Date.now();
+  const checkpoints: Record<string, number> = {};
+  const mark = (label: string) => {
+    checkpoints[label] = Date.now() - startedAt;
+    console.log(`[api/generate] ${label} at ${checkpoints[label]}ms`);
+  };
+
   try {
     // We expect a multipart/form-data request
     const formData = await req.formData();
+    mark('form-data-parsed');
     const photo = formData.get('photo') as File;
     const persona = formData.get('persona') as string;
 
@@ -28,6 +36,7 @@ export async function POST(req: Request) {
       const secret = process.env.OTP_SECRET || 'fallback_secret_please_change';
       const verified = await jwtVerify(token, new TextEncoder().encode(secret));
       userId = verified.payload.userId as number;
+      mark('auth-verified');
     } catch (err) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
     }
@@ -48,6 +57,7 @@ export async function POST(req: Request) {
       query<any[]>('SELECT COUNT(*) as count FROM generations WHERE user_id = ? AND created_at > NOW() - INTERVAL 1 WEEK', [userId]),
       query<any[]>('SELECT COUNT(*) as count FROM generations WHERE user_id = ? AND created_at > NOW() - INTERVAL 1 MONTH', [userId])
     ]);
+    mark('rate-limit-checked');
 
     if (dailyCountRes[0].count >= maxDaily) {
       return NextResponse.json({ error: `You have reached the daily limit of ${maxDaily} images. Please try again tomorrow.` }, { status: 429 });
@@ -64,16 +74,19 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(arrayBuffer);
     const base64Image = buffer.toString('base64');
     const mimeType = photo.type;
+    mark('photo-encoded');
 
     let personaData;
     try {
       personaData = parsePersonaPayload(persona);
+      mark('persona-parsed');
     } catch (e: any) {
       console.error('Persona parsing error:', e);
       return NextResponse.json({ error: 'Quiz data is invalid. Please retake the quiz.' }, { status: 400 });
     }
 
     const selection = await selectBikeForPersona(personaData);
+    mark('bike-selected');
     const bikeId = selection.bike.id;
     const bikeModel = selection.bike.model_name;
     const bikeColor = selection.resolvedColor;
@@ -81,7 +94,7 @@ export async function POST(req: Request) {
     const destinationMood = personaData.destination_meta?.personality || `${personaData.destination} rider energy`;
     const aspirationTone = personaData.aspiration || 'signature rider energy';
 
-    console.log('Generating persona copy and image in parallel...');
+    console.log('[api/generate] Generating persona copy and image in parallel...');
     const personaSummary = `${destinationMood} with ${aspirationTone.toLowerCase()}`;
     
     const finalPrompt = buildImagePrompt({
@@ -100,9 +113,10 @@ export async function POST(req: Request) {
         throw new Error(`AI Generation failed: ${aiError.message || 'Unknown AI error'}`);
       })
     ]);
+    mark('ai-complete');
 
     // Upload to AWS S3 instead of local public folder
-    console.log('Uploading to S3...');
+    console.log('[api/generate] Uploading to S3...');
     const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
     const crypto = await import('crypto');
     
@@ -132,6 +146,7 @@ export async function POST(req: Request) {
       });
       
       await s3Client.send(s3Command);
+      mark('s3-uploaded');
     } catch (s3Error: any) {
       console.error('S3 Upload Error:', s3Error);
       throw new Error(`S3 Upload failed: ${s3Error.message || 'Check AWS credentials and Bucket Block Public Access settings'}`);
@@ -140,7 +155,7 @@ export async function POST(req: Request) {
     const publicS3Url = `https://${bucketName}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${fileName}`;
 
     // Save to database
-    console.log('Saving to database...');
+    console.log('[api/generate] Saving to database...');
     await query(
       `INSERT INTO generations (
         user_id,
@@ -171,10 +186,20 @@ export async function POST(req: Request) {
         'completed',
       ]
     );
+    mark('db-saved');
 
     // Clear the OTP session token so they must verify again to generate another image
     const cookieStoreForDelete = await cookies();
     cookieStoreForDelete.delete('user_token');
+    mark('cookie-cleared');
+
+    console.log('[api/generate] completed', {
+      totalMs: Date.now() - startedAt,
+      checkpoints,
+      uploadedPhotoBytes: buffer.length,
+      encodedPhotoBase64Chars: base64Image.length,
+      generatedImageBase64Chars: generatedImageUrl.length,
+    });
 
     return NextResponse.json({
       success: true,
@@ -186,6 +211,11 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error('Generate API error:', error);
+    console.error('[api/generate] failed', {
+      totalMs: Date.now() - startedAt,
+      checkpoints,
+      error: error.message,
+    });
     
     // Provide granular error messages back to the user
     let errorMessage = 'Image generation failed. Please try again.';

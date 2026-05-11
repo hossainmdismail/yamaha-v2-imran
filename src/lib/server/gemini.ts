@@ -46,18 +46,32 @@ export async function generateCinematicImage(
   mimeType: string,
   prompt: string
 ) {
-  const client = getClient();
+  getClient();
   const model = process.env.AI_IMAGE_MODEL || 'gemini-3.1-flash-image-preview';
 
   let retries = 3;
   let delay = 2000;
+  const startedAt = Date.now();
+  const referenceImageCopies = 3;
+
+  console.log('[generateCinematicImage] starting request', {
+    model,
+    mimeType: mimeType || 'image/jpeg',
+    promptLength: prompt.length,
+    referenceImageCopies,
+    referenceImageReason: 'intentional face-match boost',
+    base64Chars: base64Image.length,
+    approxInputBytes: Math.round((base64Image.length * 3) / 4),
+  });
 
   while (retries > 0) {
     try {
+      const attempt = 4 - retries;
+      const attemptStartedAt = Date.now();
       const apiKey = process.env.GEMINI_API_KEY;
       const parts: any[] = [{ text: prompt }];
-      // Push the reference image 3 times to force the vision encoder to heavily prioritize it
-      for (let i = 0; i < 3; i++) {
+      // Intentionally send the same reference image 3 times to improve face matching.
+      for (let i = 0; i < referenceImageCopies; i++) {
         parts.push({
           inlineData: {
             mimeType: mimeType || "image/jpeg",
@@ -105,6 +119,13 @@ export async function generateCinematicImage(
         const base64Out = part?.inlineData?.data;
         const outMimeType = part?.inlineData?.mimeType || "image/png";
         if (typeof base64Out === "string" && base64Out.length > 0) {
+          console.log('[generateCinematicImage] completed', {
+            attempt,
+            attemptMs: Date.now() - attemptStartedAt,
+            totalMs: Date.now() - startedAt,
+            outputMimeType: outMimeType,
+            outputBase64Chars: base64Out.length,
+          });
           return `data:${outMimeType};base64,${base64Out}`;
         }
       }
@@ -112,12 +133,21 @@ export async function generateCinematicImage(
       throw new Error('No image payload found in response');
     } catch (err: any) {
       if (err.status === 503 && retries > 1) {
-        console.warn(`Gemini Image 503 error. Retrying in ${delay}ms...`);
+        const attempt = 4 - retries;
+        console.warn('[generateCinematicImage] Gemini 503 error, retrying', {
+          attempt,
+          retryInMs: delay,
+          elapsedMs: Date.now() - startedAt,
+        });
         await new Promise(res => setTimeout(res, delay));
         retries--;
         delay *= 2;
       } else {
-        console.error('Gemini image generation error after retries:', err.message || err);
+        console.error('[generateCinematicImage] failed', {
+          elapsedMs: Date.now() - startedAt,
+          error: err.message || err,
+          status: err.status,
+        });
         throw err;
       }
     }
