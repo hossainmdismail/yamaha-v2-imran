@@ -17,7 +17,7 @@ export default function Quiz() {
   useEffect(() => {
     // If not authenticated, kick back to OTP page
     if (localStorage.getItem('isAuthenticated') !== 'true') {
-      router.push('/');
+      router.push('/ai-persona');
       return;
     }
 
@@ -91,7 +91,7 @@ export default function Quiz() {
           sessionStorage.setItem('quizResult', JSON.stringify({
             persona: data.persona
           }));
-          router.push('/upload');
+          router.push('/ai-persona/upload');
         } else {
           alert('Failed to calculate persona. Please try again.');
           setSubmitting(false);
@@ -109,7 +109,7 @@ export default function Quiz() {
       setCurrentQ(prevQ);
       setSelectedOption(answers[prevQ] || null);
     } else {
-      router.push('/');
+      router.push('/ai-persona');
     }
   };
 

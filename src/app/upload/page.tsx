@@ -144,7 +144,7 @@ export default function Upload() {
     localStorage.removeItem('isAuthenticated');
     sessionStorage.removeItem('quizState');
     sessionStorage.removeItem('quizResult');
-    router.push(`/result/${data.generationId}`);
+    router.push(`/ai-persona/result/${data.generationId}`);
   };
 
   const checkExistingGeneration = async (requestId: string) => {
@@ -192,12 +192,12 @@ export default function Upload() {
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
 
     if (!isAuthenticated && !pendingGeneration) {
-      router.push('/');
+      router.push('/ai-persona');
       return;
     }
 
     if (!data && !pendingGeneration) {
-      router.push('/quiz');
+      router.push('/ai-persona/quiz');
     }
   }, [router]);
 

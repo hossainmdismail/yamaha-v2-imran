@@ -6,87 +6,97 @@
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.102:3000
 - Environments: .env.local
-✓ Ready in 234ms
+✓ Ready in 272ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
 
- GET /admin/generations 200 in 332ms (next.js: 45ms, application-code: 287ms)
- GET /api/admin/auth/me 200 in 150ms (next.js: 118ms, application-code: 33ms)
- GET /api/admin/generations?page=1&limit=20 200 in 144ms (next.js: 59ms, application-code: 85ms)
- GET /api/admin/generations?page=1&limit=20 200 in 154ms (next.js: 16ms, application-code: 138ms)
- GET /result/36d546577bad6a7a372899a9c5ea00ae 200 in 1845ms (next.js: 1278ms, application-code: 567ms)
- GET /result/b793a24da82c444abfec0141549a3a41 200 in 1192ms (next.js: 615ms, application-code: 577ms)
- GET /result/b793a24da82c444abfec0141549a3a41 200 in 332ms (next.js: 5ms, application-code: 327ms)
- GET / 200 in 685ms (next.js: 488ms, application-code: 197ms)
- POST /api/auth/otp/send 200 in 340ms (next.js: 221ms, application-code: 119ms)
- GET /quiz 200 in 55ms (next.js: 41ms, application-code: 15ms)
- GET /api/quiz/questions 200 in 120ms (next.js: 66ms, application-code: 54ms)
- GET /api/quiz/questions 200 in 17ms (next.js: 5ms, application-code: 12ms)
- POST /api/quiz/submit 200 in 143ms (next.js: 130ms, application-code: 13ms)
- GET /upload 200 in 33ms (next.js: 22ms, application-code: 12ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 131ms (next.js: 120ms, application-code: 11ms)
+ GET /ai-persona/quiz 200 in 537ms (next.js: 166ms, proxy.ts: 91ms, application-code: 281ms)
+ GET /ai-persona 200 in 626ms (next.js: 157ms, application-code: 469ms)
+ GET / 200 in 203ms (next.js: 49ms, application-code: 155ms)
+ GET /ai-persona 200 in 31ms (next.js: 5ms, application-code: 26ms)
+ POST /api/auth/otp/send 200 in 277ms (next.js: 108ms, application-code: 169ms)
+ GET /ai-persona/quiz 200 in 53ms (next.js: 5ms, proxy.ts: 7ms, application-code: 41ms)
+ GET /api/quiz/questions 200 in 207ms (next.js: 110ms, application-code: 97ms)
+ GET /api/quiz/questions 200 in 15ms (next.js: 6ms, application-code: 9ms)
+ POST /api/quiz/submit 200 in 58ms (next.js: 38ms, application-code: 20ms)
+ GET /ai-persona/upload 200 in 50ms (next.js: 24ms, proxy.ts: 5ms, application-code: 22ms)
+ GET /api/quiz/questions 200 in 118ms (next.js: 51ms, application-code: 67ms)
+ GET /api/quiz/questions 200 in 25ms (next.js: 9ms, application-code: 16ms)
+ POST /api/quiz/submit 200 in 28ms (next.js: 6ms, application-code: 22ms)
+ GET /ai-persona/upload 200 in 33ms (next.js: 5ms, proxy.ts: 5ms, application-code: 22ms)
+ GET /api/generate?requestId=bdf2265f3c3645fdbcdadcbad78056cd 200 in 309ms (next.js: 149ms, application-code: 160ms)
 [api/generate] form-data-parsed at 9ms
-[api/generate] auth-verified at 19ms
-[api/generate] rate-limit-checked at 46ms
-[api/generate] photo-encoded at 48ms
-[api/generate] persona-parsed at 48ms
-[api/generate] bike-selected at 60ms
-[api/generate] generation-reserved at 73ms
+[api/generate] auth-verified at 18ms
+[api/generate] rate-limit-checked at 58ms
+[api/generate] photo-encoded at 58ms
+[api/generate] persona-parsed at 58ms
+[api/generate] bike-selected at 88ms
+[api/generate] generation-reserved at 113ms
 [api/generate] Generating persona copy and image in parallel...
 [generateCinematicImage] starting request {
   model: 'gemini-3.1-flash-image-preview',
   mimeType: 'image/jpeg',
-  promptLength: 1538,
+  promptLength: 1431,
   referenceImageCopies: 3,
   referenceImageReason: 'intentional face-match boost',
-  base64Chars: 238676,
-  approxInputBytes: 179007
+  base64Chars: 141040,
+  approxInputBytes: 105780
 }
- GET /upload 200 in 70ms (next.js: 20ms, application-code: 50ms)
- POST /api/generate 200 in 5.3s (next.js: 3ms, application-code: 5.3s)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 60ms (next.js: 29ms, application-code: 32ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 6ms (next.js: 1637µs, application-code: 5ms)
- GET /upload 200 in 51ms (next.js: 9ms, application-code: 42ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 102ms (next.js: 24ms, application-code: 77ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 18ms (next.js: 9ms, application-code: 10ms)
- GET /upload 200 in 65ms (next.js: 15ms, application-code: 50ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 81ms (next.js: 10ms, application-code: 71ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 17ms (next.js: 2ms, application-code: 14ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 20ms (next.js: 10ms, application-code: 10ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 14ms (next.js: 4ms, application-code: 10ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 34ms (next.js: 15ms, application-code: 20ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 24ms (next.js: 3ms, application-code: 21ms)
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 4ms (next.js: 1082µs, application-code: 3ms)
+[generateCinematicImage] Gemini 503 error, retrying { attempt: 1, retryInMs: 2000, elapsedMs: 86627 }
 [generateCinematicImage] completed {
-  attempt: 1,
-  attemptMs: 20936,
-  totalMs: 20940,
+  attempt: 2,
+  attemptMs: 18036,
+  totalMs: 106814,
   outputMimeType: 'image/jpeg',
-  outputBase64Chars: 1202336
+  outputBase64Chars: 1061852
 }
-[api/generate] ai-complete at 21017ms
+[api/generate] ai-complete at 106931ms
 [api/generate] Uploading to S3...
-[api/generate] s3-uploaded at 21655ms
+[api/generate] s3-uploaded at 109661ms
 [api/generate] Saving to database...
-[api/generate] db-saved at 21687ms
-[api/generate] cookie-cleared at 21689ms
+[api/generate] db-saved at 109767ms
+[api/generate] cookie-cleared at 109770ms
 [api/generate] completed {
-  totalMs: 21690,
+  totalMs: 109772,
   checkpoints: {
     'form-data-parsed': 9,
-    'auth-verified': 19,
-    'rate-limit-checked': 46,
-    'photo-encoded': 48,
-    'persona-parsed': 48,
-    'bike-selected': 60,
-    'generation-reserved': 73,
-    'ai-complete': 21017,
-    's3-uploaded': 21655,
-    'db-saved': 21687,
-    'cookie-cleared': 21689
+    'auth-verified': 18,
+    'rate-limit-checked': 58,
+    'photo-encoded': 58,
+    'persona-parsed': 58,
+    'bike-selected': 88,
+    'generation-reserved': 113,
+    'ai-complete': 106931,
+    's3-uploaded': 109661,
+    'db-saved': 109767,
+    'cookie-cleared': 109770
   },
-  uploadedPhotoBytes: 179007,
-  encodedPhotoBase64Chars: 238676,
-  generatedImageBase64Chars: 1202359
+  uploadedPhotoBytes: 105779,
+  encodedPhotoBase64Chars: 141040,
+  generatedImageBase64Chars: 1061875
 }
- GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 33ms (next.js: 14ms, application-code: 19ms)
- GET /result/242425882ca646d3bdf14da0dd73be72 200 in 48ms (next.js: 11ms, application-code: 38ms)
- GET / 200 in 54ms (next.js: 19ms, application-code: 35ms)
+ POST /api/generate 200 in 110s (next.js: 4ms, application-code: 110s)
+ GET /ai-persona/result/bdf2265f3c3645fdbcdadcbad78056cd 200 in 1328ms (next.js: 1161ms, proxy.ts: 31ms, application-code: 136ms)
+ GET /api/download?url=https%3A%2F%2Fyamaha-ai-generations-2026.s3.ap-south-1.amazonaws.com%2Fgenerations%2Fgen_bdf2265f3c3645fdbcdadcbad78056cd.jpg 200 in 652ms (next.js: 168ms, application-code: 484ms)
+ GET / 200 in 6.7s (next.js: 233ms, application-code: 6.5s)
+ GET /[object%20Object] 404 in 2.6s (next.js: 474ms, application-code: 2.1s)
+ GET / 200 in 5.7s (next.js: 1963ms, application-code: 3.7s)
+ GET / 200 in 3.4s (next.js: 168ms, application-code: 3.2s)
+ GET /ai-persona/result/bdf2265f3c3645fdbcdadcbad78056cd 200 in 37.0s (next.js: 3.5s, proxy.ts: 468ms, application-code: 32.9s)
+ GET /ai-persona/result/bdf2265f3c3645fdbcdadcbad78056cd 200 in 39.4s (next.js: 2.3s, proxy.ts: 157ms, application-code: 36.9s)
+ GET / 200 in 80s (next.js: 3.3s, application-code: 77s)
+⚠ Server is approaching the used memory threshold, restarting...
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.102:3000
+- Environments: .env.local
+✓ Ready in 1048ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+ GET / 200 in 1584ms (next.js: 1105ms, application-code: 479ms)
+[browser] Image with src "/Yamaha_Persona.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+ GET / 200 in 1368ms (next.js: 242ms, application-code: 1125ms)
+[browser] Image with src "/Yamaha_Persona.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+ GET / 200 in 334ms (next.js: 88ms, application-code: 246ms)
+[browser] Image with src "/Yamaha_Persona.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+ GET / 200 in 225ms (next.js: 37ms, application-code: 188ms)
+[browser] Image with src "/Yamaha_Persona.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes

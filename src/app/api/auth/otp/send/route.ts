@@ -5,9 +5,11 @@ import { z } from 'zod';
 import { cookies } from 'next/headers';
 import { SignJWT } from 'jose';
 
+const bangladeshPhoneSchema = z.string().trim().regex(/^(?:\+8801|01)[3-9]\d{8}$/, 'Invalid Bangladesh phone number');
+
 const sendOtpSchema = z.object({
   name: z.string().min(1).optional(),
-  phone: z.string().min(10).max(15),
+  phone: bangladeshPhoneSchema,
   dob: z.string().optional()
 });
 
@@ -17,7 +19,7 @@ export async function POST(req: Request) {
     const result = sendOtpSchema.safeParse(body);
 
     if (!result.success) {
-      return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 });
+      return NextResponse.json({ error: 'Please enter a valid Bangladesh mobile number' }, { status: 400 });
     }
 
     const { name, phone, dob } = result.data;
