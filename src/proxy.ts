@@ -5,7 +5,7 @@ const redirectMap: Record<string, string> = {
   '/upload': '/ai-persona/upload',
 };
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (pathname in redirectMap) {
