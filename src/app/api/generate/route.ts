@@ -5,9 +5,56 @@ import { buildImagePrompt, parsePersonaPayload, selectBikeForPersona } from '@/l
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
+async function getGenerationByHashId(hashId: string) {
+  const generations = await query<any[]>(
+    `SELECT hash_id, generated_image_url, traits_summary, status
+     FROM generations
+     WHERE hash_id = ?
+     LIMIT 1`,
+    [hashId]
+  );
+
+  return generations[0] || null;
+}
+
+function normalizeRequestId(value: FormDataEntryValue | null) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim().toLowerCase();
+  return /^[a-f0-9]{32}$/.test(trimmed) ? trimmed : null;
+}
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const requestId = normalizeRequestId(searchParams.get('requestId'));
+
+    if (!requestId) {
+      return NextResponse.json({ error: 'Invalid request ID' }, { status: 400 });
+    }
+
+    const generation = await getGenerationByHashId(requestId);
+
+    if (!generation) {
+      return NextResponse.json({ status: 'not_found' });
+    }
+
+    return NextResponse.json({
+      status: generation.status,
+      generationId: generation.hash_id,
+      imageUrl: generation.generated_image_url,
+      personaCopy: generation.traits_summary,
+    });
+  } catch (error) {
+    console.error('Generate status API error:', error);
+    return NextResponse.json({ error: 'Failed to check generation status.' }, { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   const startedAt = Date.now();
   const checkpoints: Record<string, number> = {};
+  let activeHashId: string | null = null;
+  let reservedGeneration = false;
   const mark = (label: string) => {
     checkpoints[label] = Date.now() - startedAt;
     console.log(`[api/generate] ${label} at ${checkpoints[label]}ms`);
@@ -19,6 +66,7 @@ export async function POST(req: Request) {
     mark('form-data-parsed');
     const photo = formData.get('photo') as File;
     const persona = formData.get('persona') as string;
+    const requestId = normalizeRequestId(formData.get('requestId'));
 
     if (!photo || !persona) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -39,6 +87,21 @@ export async function POST(req: Request) {
       mark('auth-verified');
     } catch (err) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    if (requestId) {
+      const existingGeneration = await getGenerationByHashId(requestId);
+
+      if (existingGeneration) {
+        mark('existing-generation-found');
+        return NextResponse.json({
+          success: true,
+          generationId: existingGeneration.hash_id,
+          imageUrl: existingGeneration.generated_image_url,
+          personaCopy: existingGeneration.traits_summary,
+          status: existingGeneration.status,
+        });
+      }
     }
 
     // Rate Limiting Check
@@ -94,6 +157,59 @@ export async function POST(req: Request) {
     const destinationMood = personaData.destination_meta?.personality || `${personaData.destination} rider energy`;
     const aspirationTone = personaData.aspiration || 'signature rider energy';
 
+    const crypto = await import('crypto');
+    const hashId = requestId || crypto.randomBytes(16).toString('hex');
+    activeHashId = hashId;
+
+    try {
+      await query(
+        `INSERT INTO generations (
+          user_id,
+          bike_id,
+          behavior_option_id,
+          destination_option_id,
+          aspiration_option_id,
+          generated_image_url,
+          persona_title,
+          traits_summary,
+          resolved_bike_color,
+          selection_meta,
+          hash_id,
+          status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userId,
+          bikeId,
+          personaData.behavior,
+          personaData.destination_id,
+          personaData.aspiration_id,
+          null,
+          persona,
+          null,
+          bikeColor,
+          JSON.stringify(selection.selectionMeta),
+          hashId,
+          'processing',
+        ]
+      );
+      reservedGeneration = true;
+      mark('generation-reserved');
+    } catch (reservationError: any) {
+      if (reservationError?.code === 'ER_DUP_ENTRY') {
+        const existingGeneration = await getGenerationByHashId(hashId);
+        mark('existing-generation-found');
+        return NextResponse.json({
+          success: true,
+          generationId: hashId,
+          imageUrl: existingGeneration?.generated_image_url || null,
+          personaCopy: existingGeneration?.traits_summary || null,
+          status: existingGeneration?.status || 'processing',
+        });
+      }
+
+      throw reservationError;
+    }
+
     console.log('[api/generate] Generating persona copy and image in parallel...');
     const personaSummary = `${destinationMood} with ${aspirationTone.toLowerCase()}`;
     
@@ -118,10 +234,6 @@ export async function POST(req: Request) {
     // Upload to AWS S3 instead of local public folder
     console.log('[api/generate] Uploading to S3...');
     const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
-    const crypto = await import('crypto');
-    
-    // Generate secure random hash for public URL
-    const hashId = crypto.randomBytes(16).toString('hex');
     
     // Convert base64 data URI to buffer
     const base64Data = generatedImageUrl.replace(/^data:image\/\w+;base64,/, "");
@@ -157,36 +269,20 @@ export async function POST(req: Request) {
     // Save to database
     console.log('[api/generate] Saving to database...');
     await query(
-      `INSERT INTO generations (
-        user_id,
-        bike_id,
-        behavior_option_id,
-        destination_option_id,
-        aspiration_option_id,
-        generated_image_url,
-        persona_title,
-        traits_summary,
-        resolved_bike_color,
-        selection_meta,
-        hash_id,
-        status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `UPDATE generations
+       SET generated_image_url = ?,
+           traits_summary = ?,
+           status = ?
+       WHERE hash_id = ?`,
       [
-        userId,
-        bikeId,
-        personaData.behavior,
-        personaData.destination_id,
-        personaData.aspiration_id,
         publicS3Url,
-        persona,
         personaCopy,
-        bikeColor,
-        JSON.stringify(selection.selectionMeta),
-        hashId,
         'completed',
+        hashId,
       ]
     );
     mark('db-saved');
+    reservedGeneration = false;
 
     // Clear the OTP session token so they must verify again to generate another image
     const cookieStoreForDelete = await cookies();
@@ -210,6 +306,19 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
+    if (reservedGeneration && activeHashId) {
+      try {
+        await query(
+          `UPDATE generations
+           SET status = ?
+           WHERE hash_id = ?`,
+          ['failed', activeHashId]
+        );
+      } catch (updateError) {
+        console.error('Failed to mark generation as failed:', updateError);
+      }
+    }
+
     console.error('Generate API error:', error);
     console.error('[api/generate] failed', {
       totalMs: Date.now() - startedAt,

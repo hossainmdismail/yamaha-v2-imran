@@ -4,43 +4,32 @@
 
 ▲ Next.js 16.2.4 (Turbopack)
 - Local:         http://localhost:3000
-- Network:       http://192.168.43.253:3000
+- Network:       http://192.168.0.102:3000
 - Environments: .env.local
-✓ Ready in 291ms
+✓ Ready in 234ms
 
- GET / 200 in 428ms (next.js: 298ms, application-code: 130ms)
- GET /admin 200 in 117ms (next.js: 55ms, application-code: 63ms)
- GET /api/admin/auth/me 401 in 143ms (next.js: 118ms, application-code: 25ms)
- GET /admin/login 200 in 1470ms (next.js: 1446ms, application-code: 23ms)
- POST /api/admin/auth/login 200 in 384ms (next.js: 353ms, application-code: 32ms)
- GET /admin 200 in 40ms (next.js: 3ms, application-code: 38ms)
- GET /api/admin/auth/me 200 in 266ms (next.js: 17ms, application-code: 249ms)
- GET /api/admin/quiz/questions 200 in 321ms (next.js: 166ms, application-code: 155ms)
- GET /api/admin/bikes 200 in 324ms (next.js: 201ms, application-code: 123ms)
- GET /api/admin/users?limit=1 200 in 332ms (next.js: 270ms, application-code: 62ms)
- GET /api/admin/generations?limit=1 200 in 336ms (next.js: 236ms, application-code: 100ms)
- GET /api/admin/bikes 200 in 12ms (next.js: 3ms, application-code: 8ms)
- GET /api/admin/quiz/questions 200 in 13ms (next.js: 1455µs, application-code: 11ms)
- GET /api/admin/users?limit=1 200 in 15ms (next.js: 5ms, application-code: 10ms)
- GET /api/admin/generations?limit=1 200 in 7ms (next.js: 3ms, application-code: 4ms)
- GET /admin/generations 200 in 50ms (next.js: 32ms, application-code: 18ms)
- GET /api/admin/auth/me 200 in 43ms (next.js: 32ms, application-code: 11ms)
- GET /api/admin/generations?page=1&limit=20 200 in 56ms (next.js: 18ms, application-code: 38ms)
- GET /api/admin/generations?page=1&limit=20 200 in 14ms (next.js: 1083µs, application-code: 12ms)
- GET /result/daa8478fd47a27ecb9f8c20f27fb785b 200 in 640ms (next.js: 571ms, application-code: 69ms)
- GET /result/8059109fe7e42b75ba8b8d69d7a0db5b 200 in 66ms (next.js: 10ms, application-code: 56ms)
- POST /api/auth/otp/send 200 in 334ms (next.js: 233ms, application-code: 102ms)
- GET /quiz 200 in 53ms (next.js: 39ms, application-code: 15ms)
- GET /api/quiz/questions 200 in 99ms (next.js: 46ms, application-code: 52ms)
- GET /api/quiz/questions 200 in 24ms (next.js: 1465µs, application-code: 22ms)
- POST /api/quiz/submit 200 in 63ms (next.js: 50ms, application-code: 13ms)
- GET /upload 200 in 32ms (next.js: 21ms, application-code: 12ms)
-[api/generate] form-data-parsed at 6ms
-[api/generate] auth-verified at 21ms
-[api/generate] rate-limit-checked at 42ms
-[api/generate] photo-encoded at 42ms
-[api/generate] persona-parsed at 43ms
-[api/generate] bike-selected at 51ms
+ GET /admin/generations 200 in 332ms (next.js: 45ms, application-code: 287ms)
+ GET /api/admin/auth/me 200 in 150ms (next.js: 118ms, application-code: 33ms)
+ GET /api/admin/generations?page=1&limit=20 200 in 144ms (next.js: 59ms, application-code: 85ms)
+ GET /api/admin/generations?page=1&limit=20 200 in 154ms (next.js: 16ms, application-code: 138ms)
+ GET /result/36d546577bad6a7a372899a9c5ea00ae 200 in 1845ms (next.js: 1278ms, application-code: 567ms)
+ GET /result/b793a24da82c444abfec0141549a3a41 200 in 1192ms (next.js: 615ms, application-code: 577ms)
+ GET /result/b793a24da82c444abfec0141549a3a41 200 in 332ms (next.js: 5ms, application-code: 327ms)
+ GET / 200 in 685ms (next.js: 488ms, application-code: 197ms)
+ POST /api/auth/otp/send 200 in 340ms (next.js: 221ms, application-code: 119ms)
+ GET /quiz 200 in 55ms (next.js: 41ms, application-code: 15ms)
+ GET /api/quiz/questions 200 in 120ms (next.js: 66ms, application-code: 54ms)
+ GET /api/quiz/questions 200 in 17ms (next.js: 5ms, application-code: 12ms)
+ POST /api/quiz/submit 200 in 143ms (next.js: 130ms, application-code: 13ms)
+ GET /upload 200 in 33ms (next.js: 22ms, application-code: 12ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 131ms (next.js: 120ms, application-code: 11ms)
+[api/generate] form-data-parsed at 9ms
+[api/generate] auth-verified at 19ms
+[api/generate] rate-limit-checked at 46ms
+[api/generate] photo-encoded at 48ms
+[api/generate] persona-parsed at 48ms
+[api/generate] bike-selected at 60ms
+[api/generate] generation-reserved at 73ms
 [api/generate] Generating persona copy and image in parallel...
 [generateCinematicImage] starting request {
   model: 'gemini-3.1-flash-image-preview',
@@ -48,45 +37,56 @@
   promptLength: 1538,
   referenceImageCopies: 3,
   referenceImageReason: 'intentional face-match boost',
-  base64Chars: 272560,
-  approxInputBytes: 204420
+  base64Chars: 238676,
+  approxInputBytes: 179007
 }
+ GET /upload 200 in 70ms (next.js: 20ms, application-code: 50ms)
+ POST /api/generate 200 in 5.3s (next.js: 3ms, application-code: 5.3s)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 60ms (next.js: 29ms, application-code: 32ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 6ms (next.js: 1637µs, application-code: 5ms)
+ GET /upload 200 in 51ms (next.js: 9ms, application-code: 42ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 102ms (next.js: 24ms, application-code: 77ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 18ms (next.js: 9ms, application-code: 10ms)
+ GET /upload 200 in 65ms (next.js: 15ms, application-code: 50ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 81ms (next.js: 10ms, application-code: 71ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 17ms (next.js: 2ms, application-code: 14ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 20ms (next.js: 10ms, application-code: 10ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 14ms (next.js: 4ms, application-code: 10ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 34ms (next.js: 15ms, application-code: 20ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 24ms (next.js: 3ms, application-code: 21ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 4ms (next.js: 1082µs, application-code: 3ms)
 [generateCinematicImage] completed {
   attempt: 1,
-  attemptMs: 22082,
-  totalMs: 22084,
+  attemptMs: 20936,
+  totalMs: 20940,
   outputMimeType: 'image/jpeg',
-  outputBase64Chars: 1254716
+  outputBase64Chars: 1202336
 }
-[api/generate] ai-complete at 22142ms
+[api/generate] ai-complete at 21017ms
 [api/generate] Uploading to S3...
-[api/generate] s3-uploaded at 23409ms
+[api/generate] s3-uploaded at 21655ms
 [api/generate] Saving to database...
-[api/generate] db-saved at 23436ms
-[api/generate] cookie-cleared at 23437ms
+[api/generate] db-saved at 21687ms
+[api/generate] cookie-cleared at 21689ms
 [api/generate] completed {
-  totalMs: 23438,
+  totalMs: 21690,
   checkpoints: {
-    'form-data-parsed': 6,
-    'auth-verified': 21,
-    'rate-limit-checked': 42,
-    'photo-encoded': 42,
-    'persona-parsed': 43,
-    'bike-selected': 51,
-    'ai-complete': 22142,
-    's3-uploaded': 23409,
-    'db-saved': 23436,
-    'cookie-cleared': 23437
+    'form-data-parsed': 9,
+    'auth-verified': 19,
+    'rate-limit-checked': 46,
+    'photo-encoded': 48,
+    'persona-parsed': 48,
+    'bike-selected': 60,
+    'generation-reserved': 73,
+    'ai-complete': 21017,
+    's3-uploaded': 21655,
+    'db-saved': 21687,
+    'cookie-cleared': 21689
   },
-  uploadedPhotoBytes: 204420,
-  encodedPhotoBase64Chars: 272560,
-  generatedImageBase64Chars: 1254739
+  uploadedPhotoBytes: 179007,
+  encodedPhotoBase64Chars: 238676,
+  generatedImageBase64Chars: 1202359
 }
- POST /api/generate 200 in 23.6s (next.js: 172ms, application-code: 23.4s)
- GET /result/36d546577bad6a7a372899a9c5ea00ae 200 in 53ms (next.js: 24ms, application-code: 29ms)
- GET / 200 in 75ms (next.js: 22ms, application-code: 53ms)
- GET /result/36d546577bad6a7a372899a9c5ea00ae 200 in 115ms (next.js: 18ms, application-code: 97ms)
- GET /result/36d546577bad6a7a372899a9c5ea00ae 200 in 123ms (next.js: 18ms, application-code: 106ms)
- GET / 200 in 55ms (next.js: 10ms, application-code: 45ms)
- GET /quiz 200 in 91ms (next.js: 23ms, application-code: 69ms)
- GET / 200 in 23ms (next.js: 11ms, application-code: 12ms)
+ GET /api/generate?requestId=242425882ca646d3bdf14da0dd73be72 200 in 33ms (next.js: 14ms, application-code: 19ms)
+ GET /result/242425882ca646d3bdf14da0dd73be72 200 in 48ms (next.js: 11ms, application-code: 38ms)
+ GET / 200 in 54ms (next.js: 19ms, application-code: 35ms)

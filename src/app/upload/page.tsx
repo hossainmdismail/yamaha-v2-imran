@@ -13,6 +13,101 @@ const LOADING_MESSAGES = [
   "Finalizing your cinematic portrait..."
 ];
 
+const PENDING_GENERATION_KEY = 'pendingGeneration';
+const UPLOAD_DB_NAME = 'yamaha-upload-state';
+const UPLOAD_STORE_NAME = 'files';
+const UPLOAD_FILE_KEY = 'pending-upload';
+
+type PendingGeneration = {
+  requestId: string;
+  startedAt: number;
+};
+
+type GenerationStatusResponse = {
+  generationId?: string;
+  status?: 'not_found' | 'processing' | 'completed' | 'failed';
+};
+
+function createRequestId() {
+  return crypto.randomUUID().replace(/-/g, '');
+}
+
+function openUploadDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(UPLOAD_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(UPLOAD_STORE_NAME)) {
+        db.createObjectStore(UPLOAD_STORE_NAME);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function savePendingFile(blob: Blob) {
+  const db = await openUploadDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(UPLOAD_STORE_NAME, 'readwrite');
+    tx.objectStore(UPLOAD_STORE_NAME).put(blob, UPLOAD_FILE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+}
+
+async function loadPendingFile() {
+  const db = await openUploadDb();
+  const blob = await new Promise<Blob | null>((resolve, reject) => {
+    const tx = db.transaction(UPLOAD_STORE_NAME, 'readonly');
+    const request = tx.objectStore(UPLOAD_STORE_NAME).get(UPLOAD_FILE_KEY);
+    request.onsuccess = () => resolve((request.result as Blob | undefined) || null);
+    request.onerror = () => reject(request.error);
+  });
+  db.close();
+  return blob;
+}
+
+async function clearPendingFile() {
+  const db = await openUploadDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(UPLOAD_STORE_NAME, 'readwrite');
+    tx.objectStore(UPLOAD_STORE_NAME).delete(UPLOAD_FILE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+}
+
+function readPendingGeneration(): PendingGeneration | null {
+  const raw = localStorage.getItem(PENDING_GENERATION_KEY);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<PendingGeneration>;
+    if (typeof parsed.requestId === 'string' && typeof parsed.startedAt === 'number') {
+      return {
+        requestId: parsed.requestId,
+        startedAt: parsed.startedAt,
+      };
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function writePendingGeneration(value: PendingGeneration) {
+  localStorage.setItem(PENDING_GENERATION_KEY, JSON.stringify(value));
+}
+
+async function clearPendingGeneration() {
+  localStorage.removeItem(PENDING_GENERATION_KEY);
+  await clearPendingFile();
+}
+
 export default function Upload() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
@@ -22,17 +117,86 @@ export default function Upload() {
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [quizData, setQuizData] = useState<any>(null);
+  const resumeAttemptedRef = useRef(false);
+  const previewUrlRef = useRef<string | null>(null);
+
+  const restoreSavedFile = async () => {
+    const savedBlob = await loadPendingFile();
+    if (!savedBlob) return null;
+
+    const restoredFile = new File([savedBlob], 'upload.jpg', {
+      type: savedBlob.type || 'image/jpeg',
+    });
+
+    setFile(restoredFile);
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+    }
+    const objectUrl = URL.createObjectURL(restoredFile);
+    previewUrlRef.current = objectUrl;
+    setPreview(objectUrl);
+
+    return restoredFile;
+  };
+
+  const finalizeGeneration = async (data: { generationId: string }) => {
+    await clearPendingGeneration();
+    localStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('quizState');
+    sessionStorage.removeItem('quizResult');
+    router.push(`/result/${data.generationId}`);
+  };
+
+  const checkExistingGeneration = async (requestId: string) => {
+    const res = await fetch(`/api/generate?requestId=${requestId}`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    return data as GenerationStatusResponse;
+  };
+
+  const waitForGenerationCompletion = async (requestId: string) => {
+    for (let attempt = 0; attempt < 60; attempt++) {
+      const status = await checkExistingGeneration(requestId);
+      if (!status) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        continue;
+      }
+
+      if (status.status === 'completed' && status.generationId) {
+        return status;
+      }
+
+      if (status.status === 'failed') {
+        return status;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+
+    return null;
+  };
 
   useEffect(() => {
-    if (localStorage.getItem('isAuthenticated') !== 'true') {
+    const data = sessionStorage.getItem('quizResult');
+    if (data) {
+      setQuizData(JSON.parse(data));
+    }
+
+    const pendingGeneration = readPendingGeneration();
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+
+    if (!isAuthenticated && !pendingGeneration) {
       router.push('/');
       return;
     }
 
-    const data = sessionStorage.getItem('quizResult');
-    if (data) {
-      setQuizData(JSON.parse(data));
-    } else {
+    if (!data && !pendingGeneration) {
       router.push('/quiz');
     }
   }, [router]);
@@ -48,17 +212,162 @@ export default function Upload() {
     };
 
     if (loading) {
+      window.history.pushState({ generationLocked: true }, '', window.location.href);
       window.addEventListener('beforeunload', handleBeforeUnload);
+      const handlePopState = () => {
+        window.history.pushState({ generationLocked: true }, '', window.location.href);
+      };
+      window.addEventListener('popstate', handlePopState);
       interval = setInterval(() => {
         setLoadingStep((prev) => (prev + 1) % LOADING_MESSAGES.length);
       }, 3000);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        window.removeEventListener('popstate', handlePopState);
+      };
     }
     
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    return undefined;
   }, [loading]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
+
+  const submitGeneration = async (currentFile: File, currentQuizData: any, requestId: string) => {
+    setLoading(true);
+    setError('');
+    writePendingGeneration({ requestId, startedAt: Date.now() });
+
+    try {
+      const existingGeneration = await checkExistingGeneration(requestId);
+      if (existingGeneration?.status === 'completed' && existingGeneration.generationId) {
+        await finalizeGeneration({ generationId: existingGeneration.generationId });
+        return;
+      }
+      if (existingGeneration?.status === 'processing') {
+        const completedGeneration = await waitForGenerationCompletion(requestId);
+        if (completedGeneration?.status === 'completed' && completedGeneration.generationId) {
+          await finalizeGeneration({ generationId: completedGeneration.generationId });
+          return;
+        }
+        if (completedGeneration?.status === 'failed') {
+          setError('Generation failed. Please try again.');
+          setLoading(false);
+          await clearPendingGeneration();
+          return;
+        }
+        setError('Generation is still processing. Please wait a little longer.');
+        setLoading(false);
+        return;
+      }
+
+      const resizedBlob = await resizeImage(currentFile);
+      const formData = new FormData();
+      formData.append('photo', resizedBlob, 'upload.jpg');
+      formData.append('persona', currentQuizData.persona);
+      formData.append('requestId', requestId);
+
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success && data.status === 'completed') {
+        await finalizeGeneration({ generationId: data.generationId });
+      } else if (res.ok && data.success && data.status === 'processing') {
+        const completedGeneration = await waitForGenerationCompletion(requestId);
+        if (completedGeneration?.status === 'completed' && completedGeneration.generationId) {
+          await finalizeGeneration({ generationId: completedGeneration.generationId });
+          return;
+        }
+
+        if (completedGeneration?.status === 'failed') {
+          setError('Generation failed. Please try again.');
+          setLoading(false);
+          await clearPendingGeneration();
+          return;
+        }
+        setError('Generation is still processing. Please wait a little longer.');
+        setLoading(false);
+        return;
+      } else {
+        const recoveredGeneration = await checkExistingGeneration(requestId);
+        if (recoveredGeneration?.status === 'completed' && recoveredGeneration.generationId) {
+          await finalizeGeneration({ generationId: recoveredGeneration.generationId });
+          return;
+        }
+
+        setError(data.error || 'Generation failed');
+        setLoading(false);
+        await clearPendingGeneration();
+      }
+    } catch (err) {
+      const recoveredGeneration = await checkExistingGeneration(requestId);
+      if (recoveredGeneration?.status === 'completed' && recoveredGeneration.generationId) {
+        await finalizeGeneration({ generationId: recoveredGeneration.generationId });
+        return;
+      }
+
+      setError('Generation was interrupted. Your image is still here, so you can retry immediately.');
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const resumePendingGeneration = async () => {
+      if (resumeAttemptedRef.current) return;
+      if (quizData === null) return;
+
+      const pendingGeneration = readPendingGeneration();
+      if (!pendingGeneration) return;
+
+      resumeAttemptedRef.current = true;
+      setLoading(true);
+      setError('');
+
+      const recoveredGeneration = await checkExistingGeneration(pendingGeneration.requestId);
+      if (recoveredGeneration?.status === 'completed' && recoveredGeneration.generationId) {
+        await finalizeGeneration({ generationId: recoveredGeneration.generationId });
+        return;
+      }
+      if (recoveredGeneration?.status === 'processing') {
+        const completedGeneration = await waitForGenerationCompletion(pendingGeneration.requestId);
+        if (completedGeneration?.status === 'completed' && completedGeneration.generationId) {
+          await finalizeGeneration({ generationId: completedGeneration.generationId });
+          return;
+        }
+        if (completedGeneration?.status === 'failed') {
+          setLoading(false);
+          setError('Previous generation failed. Please try again.');
+          await clearPendingGeneration();
+          return;
+        }
+        setLoading(false);
+        setError('Generation is still processing. Please wait a little longer.');
+        return;
+      }
+
+      const restoredFile = await restoreSavedFile();
+      if (!restoredFile || !quizData) {
+        setLoading(false);
+        setError('Previous generation was interrupted. Please upload the image again.');
+        await clearPendingGeneration();
+        return;
+      }
+
+      await submitGeneration(restoredFile, quizData, pendingGeneration.requestId);
+    };
+
+    void resumePendingGeneration();
+  }, [quizData]);
 
   const resizeImage = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -106,43 +415,23 @@ export default function Upload() {
         setError('File size must be less than 6MB');
         return;
       }
+
+      void savePendingFile(selected);
       setFile(selected);
-      setPreview(URL.createObjectURL(selected));
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+      const objectUrl = URL.createObjectURL(selected);
+      previewUrlRef.current = objectUrl;
+      setPreview(objectUrl);
       setError('');
     }
   };
 
   const handleGenerate = async () => {
     if (!file || !quizData) return;
-    
-    setLoading(true);
-    setError('');
 
-    try {
-      const resizedBlob = await resizeImage(file);
-      const formData = new FormData();
-      formData.append('photo', resizedBlob, 'upload.jpg');
-      formData.append('persona', quizData.persona);
-
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        localStorage.removeItem('isAuthenticated');
-        sessionStorage.removeItem('quizState');
-        sessionStorage.removeItem('quizResult');
-        router.push(`/result/${data.generationId}`);
-      } else {
-        setError(data.error || 'Generation failed');
-        setLoading(false);
-      }
-    } catch (err) {
-      setError('Error during generation. Please try again.');
-      setLoading(false);
-    }
+    await submitGeneration(file, quizData, createRequestId());
   };
 
   if (loading) {
